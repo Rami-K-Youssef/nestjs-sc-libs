@@ -1,6 +1,6 @@
 {
   "name": "@scandinavia/nestjs-libs",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "Useful libraries for scandinaviatech",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
