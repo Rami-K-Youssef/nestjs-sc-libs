@@ -144,12 +144,7 @@ export class DocAggregator<
     const countPipeline = [...pipeline, { $count: "total" }];
 
     let finalData = rawData;
-
-    if (this.responseDto) {
-      finalData = finalData.map((item) =>
-        plainToInstance(this.responseDto, item)
-      );
-    } else if (this.responseDescriminator) {
+    if (this.responseDescriminator) {
       finalData = finalData.map((item) => {
         const type = item[this.responseDescriminator.discriminator.property];
         const subType = this.responseDescriminator.discriminator.subTypes.find(
@@ -161,6 +156,10 @@ export class DocAggregator<
           );
         return plainToInstance(subType.value, item);
       });
+    } else if (this.responseDto) {
+      finalData = finalData.map((item) =>
+        plainToInstance(this.responseDto, item)
+      );
     }
     return {
       data: finalData,
