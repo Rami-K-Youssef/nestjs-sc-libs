@@ -1,2 +1,1 @@
-export * from './aggregator';
-export * from './path-resolver';
+export * from "./aggregator";

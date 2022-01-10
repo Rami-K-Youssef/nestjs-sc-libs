@@ -1,6 +1,6 @@
 import { plainToInstance } from "class-transformer";
 import { Document, LeanDocument, Model } from "mongoose";
-import { resolvePathFilters } from ".";
+import { resolvePathFilters } from "./path-resolver";
 import { Pagination, TransformedSearchDto } from "..";
 import {
   BaseResponseDto,
