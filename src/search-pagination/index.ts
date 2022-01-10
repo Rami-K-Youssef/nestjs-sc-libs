@@ -11,3 +11,4 @@ export {
   PathOptions,
   LookupFlags,
 } from "./definitions";
+export * from "./pipe";
