@@ -4,6 +4,7 @@ export * from "./transaction-helper";
 export * from "./mongoose-softdelete";
 export * from "./search-pagination";
 export * from "./backend-helpers";
+export * from "./uploader";
 
 import { MongooseSoftDeleteModel } from "./mongoose-softdelete";
 import {
@@ -16,3 +17,6 @@ export type CompleteModel<T extends AccessibleFieldsDocument> =
   AccessibleRecordModel<T> &
     MongooseSoftDeleteModel<T> &
     AccessibleFieldsModel<T>;
+
+export type AccessibleModel<T extends AccessibleFieldsDocument> =
+  AccessibleRecordModel<T> & AccessibleFieldsModel<T>;

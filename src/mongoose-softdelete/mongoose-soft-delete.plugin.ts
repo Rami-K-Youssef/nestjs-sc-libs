@@ -1,4 +1,10 @@
-import mongoose, { SaveOptions, Schema } from "mongoose";
+import {
+  SaveOptions,
+  Schema,
+  Aggregate,
+  Query,
+  Error as MongooseError,
+} from "mongoose";
 
 export const mongooseSoftDeletePlugin = (schema: Schema) => {
   schema.add({
@@ -27,10 +33,7 @@ export const mongooseSoftDeletePlugin = (schema: Schema) => {
     "countDocuments",
   ];
 
-  async function excludeInFindQueriesIsDeleted(
-    this: mongoose.Query<any, any>,
-    next
-  ) {
+  async function excludeInFindQueriesIsDeleted(this: Query<any, any>, next) {
     if (this.getFilter().isDeleted == true) return next();
 
     this.setQuery({ ...this.getFilter(), isDeleted: false });
@@ -38,7 +41,7 @@ export const mongooseSoftDeletePlugin = (schema: Schema) => {
   }
 
   async function excludeInDeletedInAggregateMiddleware(
-    this: mongoose.Aggregate<any>,
+    this: Aggregate<any>,
     next
   ) {
     this.pipeline().unshift({ $match: { isDeleted: false } });
@@ -63,7 +66,7 @@ export const mongooseSoftDeletePlugin = (schema: Schema) => {
         await template
           .save(options)
           .then(() => deleted++)
-          .catch((e: mongoose.Error) => {
+          .catch((e: MongooseError) => {
             throw new Error(e.name + " " + e.message);
           });
       }
@@ -91,7 +94,7 @@ export const mongooseSoftDeletePlugin = (schema: Schema) => {
         await deletedTemplate
           .save()
           .then(() => restored++)
-          .catch((e: mongoose.Error) => {
+          .catch((e: MongooseError) => {
             throw new Error(e.name + " " + e.message);
           });
       }

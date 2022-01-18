@@ -9,10 +9,13 @@ export function handleCodedException(
   const ctx = host.switchToHttp();
   const response = ctx.getResponse<Response>();
 
+  const args = exception.args;
+
   response.status(exception.err.getStatus()).json({
     statusCode: exception.err.getStatus(),
     errCode: exception.errCode,
     message: exception.response,
+    args,
   });
 }
 

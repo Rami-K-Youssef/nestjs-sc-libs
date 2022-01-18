@@ -1,0 +1,7 @@
+1- Annotate controller for field names, file sizes, accepted mime types, provide file pipeline, private/public
+2- All steps in (1) should only describe what to construct upon api call
+3- On api call, generate pipelines according to specs
+4- Pass file by file to the appropriate pipelines and store results holding any delete callbacks should an error occur
+5- Do a try,catch within the interceptor to handle file deletion upon request failure
+6- Create an annotation that extracts uploaded files as a map (key->array) according to upload keys
+7- These files will hold a url,filepath(opt),size,mimetype,originalName

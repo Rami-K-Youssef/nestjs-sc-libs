@@ -1,30 +1,31 @@
-import { HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, NotFoundException } from "@nestjs/common";
 
 export class CodedException extends Error {
   errCode: string;
   err: HttpException;
   args: any;
   public response: string | Record<string, any>;
-  constructor(response?: string | Record<string, any>) {
+  constructor(response?: string | Record<string, any>, args?: any) {
     super(
       response
-        ? typeof response == 'string'
+        ? typeof response == "string"
           ? response
           : JSON.stringify(response)
-        : null,
+        : null
     );
     this.response = response;
+    this.args = args;
   }
 }
 
 export function GenCodedException(
   status: HttpStatus,
-  code: string,
+  code: string
 ): typeof CodedException {
   class InternalCodedException extends CodedException {
     errCode = code;
-    constructor(response: string | Record<string, any>) {
-      super(response);
+    constructor(response: string | Record<string, any>, args?: any) {
+      super(response, args);
       this.err = new HttpException(response, status);
     }
   }
@@ -33,7 +34,7 @@ export function GenCodedException(
 
 export function ResourceNotFoundException(
   resourceName: string,
-  code = `${resourceName}_NOT_FOUND`,
+  code = `${resourceName}_NOT_FOUND`
 ): typeof CodedException {
   class InternalNotFoundException extends CodedException {
     errCode = code;

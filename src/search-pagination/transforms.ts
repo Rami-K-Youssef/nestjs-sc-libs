@@ -1,8 +1,8 @@
-import { Transform, Type } from 'class-transformer';
-import { Types } from 'mongoose';
+import { Transform, Type } from "class-transformer";
+import { Types } from "mongoose";
 
 export const TransformIdOrDto = (
-  myClass: () => new (...args: any[]) => unknown,
+  myClass: () => new (...args: any[]) => unknown
 ): PropertyDecorator => {
   return (...args) => {
     Type(({ object, property }) => {
@@ -19,11 +19,11 @@ export const TransformIds = (): PropertyDecorator => {
       ({ obj, key }) => {
         return obj[key]
           ? obj[key].map((item) =>
-              item instanceof Types.ObjectId ? item.toHexString() : item,
+              item instanceof Types.ObjectId ? item.toHexString() : item
             )
           : [];
       },
-      { toClassOnly: true },
+      { toClassOnly: true }
     )(...args);
   };
 };
