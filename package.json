@@ -1,7 +1,7 @@
 {
   "name": "@scandinavia/nestjs-libs",
-  "version": "1.2.2",
-  "description": "Useful libraries for scandinaviatech",
+  "version": "1.2.3",
+  "description": "NestJS Utilities",
   "author": "Rami Kass Youssef",
   "license": "MIT",
   "private": false,
