@@ -4,6 +4,7 @@ import {
   CacheInterceptor,
   Injectable,
 } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
 import { Observable } from "rxjs";
 
 const CachePropertyName = Symbol("CacheThisApiSymbol");
@@ -20,6 +21,10 @@ export function CacheThisEndpoint() {
 
 @Injectable()
 export class CustomCacheInterceptor extends CacheInterceptor {
+  constructor(cacheManager: any, reflector: Reflector) {
+    super(cacheManager, reflector);
+  }
+
   intercept(
     context: ExecutionContext,
     next: CallHandler
