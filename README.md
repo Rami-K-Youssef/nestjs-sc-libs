@@ -16,6 +16,7 @@ This package is a collection of many utilities that help building REST applicati
 - CASL Foribdden Exception Filter
 - MongoId Parse Pipes
 - File Uploader
+- Global Chaching Interceptor
 
 ## **_Transaction Helper_**
 
@@ -346,3 +347,21 @@ async upload(@UploadedSingleFileByField('logo') logo: UploadedFile) {
     return logo;
 }
 ```
+
+## **_Caching_**
+
+Define the **CustomCacheInterceptor** globally in the app.module.ts file
+
+```ts
+@Module({
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CustomCacheInterceptor,
+    },
+  ],
+})
+export class AppModule {}
+```
+
+In order to cache a certain endpoint, use @CacheThisEndpoint decorator in GET controllers.
