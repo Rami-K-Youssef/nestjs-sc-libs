@@ -13,6 +13,18 @@ export const TransformIdOrDto = (
   };
 };
 
+export const TransformIdOrDtoArray = (
+  myClass: () => new (...args: any[]) => unknown
+): PropertyDecorator => {
+  return (...args) => {
+    Type(({ object, property }) => {
+      const result =
+        object[property][0] instanceof Types.ObjectId ? String : myClass();
+      return result;
+    })(...args);
+  };
+};
+
 export const TransformIds = (): PropertyDecorator => {
   return (...args) => {
     Transform(
