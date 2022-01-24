@@ -1,4 +1,4 @@
-import { plainToInstance } from "class-transformer";
+import { plainToInstance, TransformOptions } from "class-transformer";
 import { Document, LeanDocument, Model } from "mongoose";
 import { resolvePathFilters } from "./path-resolver";
 import { Pagination, TransformedSearchDto } from "..";
@@ -19,14 +19,17 @@ export class DocAggregator<
 > {
   private responseDto: typeof BaseResponseDto;
   private responseDescriminator: DiscriminatorDescDto;
+  private transformOptions: TransformOptions;
 
   constructor(
     private model: Model<any>,
     baseDto: typeof BaseResponseDto,
-    descriminator?: DiscriminatorDescDto
+    descriminator?: DiscriminatorDescDto,
+    transformOptions?: TransformOptions
   ) {
     this.responseDto = baseDto;
     this.responseDescriminator = descriminator;
+    this.transformOptions = transformOptions;
   }
 
   private async _aggregate(
@@ -154,11 +157,11 @@ export class DocAggregator<
           throw new Error(
             `Could not find class constructor for type '${type}'`
           );
-        return plainToInstance(subType.value, item);
+        return plainToInstance(subType.value, item, this.transformOptions);
       });
     } else if (this.responseDto) {
       finalData = finalData.map((item) =>
-        plainToInstance(this.responseDto, item)
+        plainToInstance(this.responseDto, item, this.transformOptions)
       );
     }
     return {
