@@ -12,11 +12,13 @@ export const RequestUser = createParamDecorator(
 );
 
 export function TransformDto(
-  dto: typeof BaseResponseDto,
-  options: TransformOptions
+  dto: BaseResponseDto,
+  options: TransformOptions,
+  groupFn: (item: any, user?: any) => string[]
 ) {
   return applyDecorators(
     SetMetadata("class_serializer:options", options),
-    SetMetadata("class_serializer:dto", dto)
+    SetMetadata("class_serializer:dto", dto),
+    SetMetadata("class_serializer:groupFn", groupFn)
   );
 }
