@@ -1,7 +1,7 @@
 import { plainToInstance, TransformOptions } from "class-transformer";
 import { Document, LeanDocument, Model } from "mongoose";
 import { resolvePathFilters } from "./path-resolver";
-import { Pagination, TransformedSearchDto } from "..";
+import { Pagination, SearchResult, TransformedSearchDto } from "..";
 import {
   BaseResponseDto,
   DiscriminatorDescDto,
@@ -13,17 +13,14 @@ import * as lodash from "lodash";
 
 import { checkPathAndReturnDescriptor } from "./../parsers/path-checker";
 
-export class DocAggregator<
-  TDocument extends Document,
-  TResponseDto = LeanDocument<TDocument>
-> {
-  private responseDto: typeof BaseResponseDto;
+export class DocAggregator<TResponseDto extends new () => BaseResponseDto> {
+  private responseDto: TResponseDto;
   private responseDescriminator: DiscriminatorDescDto;
   private transformOptions: TransformOptions;
 
   constructor(
     private model: Model<any>,
-    baseDto: typeof BaseResponseDto,
+    baseDto: TResponseDto,
     descriminator?: DiscriminatorDescDto,
     transformOptions?: TransformOptions
   ) {
@@ -181,10 +178,10 @@ export class DocAggregator<
   public async aggregateAndCount(
     dto: TransformedSearchDto,
     pathOptions: PathOptions = {}
-  ) {
+  ): Promise<SearchResult<TResponseDto>> {
     const res = await this._aggregate(dto, pathOptions);
     const that = this;
-    return {
+    const result = {
       pagination: null,
       data: res.data,
       paginate: async function () {
@@ -194,6 +191,7 @@ export class DocAggregator<
         );
       },
     };
+    return result;
   }
 
   private paginate(query: TransformedSearchDto, count: number): Pagination {
