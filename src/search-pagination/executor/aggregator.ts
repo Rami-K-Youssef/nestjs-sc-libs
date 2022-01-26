@@ -17,13 +17,13 @@ export class DocAggregator<
   TResponseDto extends BaseResponseDto,
   TResponseDtoClass extends new () => TResponseDto
 > {
-  private responseDto: TResponseDto;
+  private responseDto: TResponseDtoClass;
   private responseDescriminator: DiscriminatorDescDto;
   private transformOptions: TransformOptions;
 
   constructor(
     private model: Model<any>,
-    baseDto: TResponseDto,
+    baseDto: TResponseDtoClass,
     descriminator?: DiscriminatorDescDto,
     transformOptions?: TransformOptions
   ) {
