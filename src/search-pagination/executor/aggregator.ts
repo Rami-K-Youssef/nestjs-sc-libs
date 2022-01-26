@@ -13,7 +13,10 @@ import * as lodash from "lodash";
 
 import { checkPathAndReturnDescriptor } from "./../parsers/path-checker";
 
-export class DocAggregator<TResponseDto extends new () => BaseResponseDto> {
+export class DocAggregator<
+  TResponseDto extends BaseResponseDto,
+  TResponseDtoClass extends new () => TResponseDto
+> {
   private responseDto: TResponseDto;
   private responseDescriminator: DiscriminatorDescDto;
   private transformOptions: TransformOptions;
