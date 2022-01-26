@@ -15,3 +15,9 @@ export interface Pagination {
   next?: number;
   prev?: number;
 }
+
+export interface SearchResult<T> {
+  data: T[];
+  pagination?: Pagination;
+  paginate: () => Promise<void>;
+}

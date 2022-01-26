@@ -183,11 +183,16 @@ export class DocAggregator<
     pathOptions: PathOptions = {}
   ) {
     const res = await this._aggregate(dto, pathOptions);
-    const totalCount =
-      (await this.model.aggregate(res.countQuery))[0]?.total || 0;
+    const that = this;
     return {
-      pagination: this.paginate(dto, totalCount),
+      pagination: null,
       data: res.data,
+      paginate: async function () {
+        this.pagination = that.paginate(
+          dto,
+          (await that.model.aggregate(res.countQuery))[0]?.total || 0
+        );
+      },
     };
   }
 
