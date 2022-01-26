@@ -14,8 +14,8 @@ import * as lodash from "lodash";
 import { checkPathAndReturnDescriptor } from "./../parsers/path-checker";
 
 export class DocAggregator<
-  TResponseDto extends BaseResponseDto,
-  TResponseDtoClass extends new () => TResponseDto
+  TResponseDtoClass extends new () => TResponseDto,
+  TResponseDto = InstanceType<TResponseDtoClass>
 > {
   private responseDto: TResponseDtoClass;
   private responseDescriminator: DiscriminatorDescDto;
