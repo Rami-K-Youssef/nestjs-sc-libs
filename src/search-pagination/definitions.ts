@@ -60,7 +60,7 @@ export class BaseResponseDto {
   @ApiHideProperty()
   @Transform(
     ({ obj }) => {
-      return obj._id.toString();
+      return obj._id?.toString();
     },
     { toClassOnly: true }
   )
