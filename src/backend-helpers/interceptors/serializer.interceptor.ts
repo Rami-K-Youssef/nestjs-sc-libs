@@ -17,7 +17,7 @@ import { Document } from "mongoose";
 import { SearchResult } from "./../../search-pagination/dto/pagination.dto";
 import { map } from "rxjs";
 import { ClassTransformerOptionsExt } from "../decoractors";
-import { plainToDiscrimnator } from "@app/search-pagination";
+import { plainToDiscrimnator } from "../../search-pagination/transforms";
 
 const IgnoredPropertyName = Symbol("IgnoredPropertyName");
 
