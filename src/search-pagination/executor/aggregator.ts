@@ -35,10 +35,10 @@ export class DocAggregator<
   ) {
     this.responseDto = baseDto;
     this.ctx = options?.ctx;
-    if (options.descriminator)
+    if (options?.descriminator)
       this.responseDiscriminator = options.descriminator;
-    if (options.transformFn) this.transformFn = options.transformFn;
-    if (options.transformOptions)
+    if (options?.transformFn) this.transformFn = options.transformFn;
+    if (options?.transformOptions)
       this.transformOptions = options.transformOptions;
   }
 
