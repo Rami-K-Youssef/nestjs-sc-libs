@@ -9,6 +9,7 @@ import { Reflector } from "@nestjs/core";
 import { BaseResponseDto } from "./../../search-pagination/definitions";
 import { ClassTransformOptions, plainToInstance } from "class-transformer";
 import { Document } from "mongoose";
+import { SearchResult } from "@app/search-pagination";
 
 const IgnoredPropertyName = Symbol("IgnoredPropertyName");
 
@@ -57,7 +58,11 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
       else if (obj instanceof BaseResponseDto) return obj;
       else return plainToInstance(this.dto, obj, this.transformOptions);
     };
-    if (Array.isArray(response)) {
+    if (response instanceof SearchResult) {
+      delete response.paginate;
+      const data = super.serialize(response.data.map(fn), options);
+      return { data, pagination: response.pagination };
+    } else if (Array.isArray(response)) {
       return super.serialize(response.map(fn), options);
     } else {
       return super.serialize(fn(response), options);

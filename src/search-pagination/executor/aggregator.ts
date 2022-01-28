@@ -176,9 +176,10 @@ export class PlainDocAggregator {
           dto,
           (await that.model.aggregate(res.countQuery))[0]?.total || 0
         );
+        delete this.paginate;
       },
     };
-    return result;
+    return new SearchResult(result);
   }
 
   public paginate(query: TransformedSearchDto, count: number): Pagination {
