@@ -255,7 +255,7 @@ export class DocAggregator<
           options.groups = this.transformFn(item, this.ctx.user);
         return plainToInstance(subType.value, item, options) as TResponseDto;
       });
-    } else if (this.responseDto) {
+    } else {
       return data.map((item) => {
         const options = {
           ...transformationOptions,
