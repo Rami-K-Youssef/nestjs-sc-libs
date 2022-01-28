@@ -15,7 +15,7 @@ export const RequestUser = createParamDecorator(
 );
 
 export interface ClassTransformerOptionsExt extends ClassTransformOptions {
-  discriminator: DiscriminatorDescriptor;
+  discriminator?: DiscriminatorDescriptor;
 }
 
 export function TransformDto(
