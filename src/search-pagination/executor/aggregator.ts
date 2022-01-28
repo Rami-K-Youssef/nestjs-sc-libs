@@ -18,22 +18,13 @@ type DocAggregatorOptions = {
   ctx: { user?: any };
 };
 
-export class DocAggregator<
-  TResponseDtoClass extends new () => TResponseDto,
-  TResponseDto = InstanceType<TResponseDtoClass>
-> {
-  private responseDto: TResponseDtoClass;
-  private responseDiscriminator: DiscriminatorDescDto;
-  private transformOptions: ClassTransformOptions;
-  private transformFn: (item: any, user?: any) => string[];
-  private ctx: { user?: any };
+export class PlainDocAggregator {
+  protected responseDiscriminator: DiscriminatorDescDto;
+  protected transformOptions: ClassTransformOptions;
+  protected transformFn: (item: any, user?: any) => string[];
+  protected ctx: { user?: any };
 
-  constructor(
-    private model: Model<any>,
-    baseDto: TResponseDtoClass,
-    options?: DocAggregatorOptions
-  ) {
-    this.responseDto = baseDto;
+  constructor(protected model: Model<any>, options?: DocAggregatorOptions) {
     this.ctx = options?.ctx;
     if (options?.descriminator)
       this.responseDiscriminator = options.descriminator;
@@ -42,11 +33,11 @@ export class DocAggregator<
       this.transformOptions = options.transformOptions;
   }
 
-  private async _aggregate(
+  protected async _aggregate(
     dto: TransformedSearchDto,
     pathOptions: PathOptions = {}
   ): Promise<{
-    data: TResponseDto[];
+    data: any[];
     countQuery: any;
   }> {
     const pipeline = [];
@@ -136,7 +127,6 @@ export class DocAggregator<
       }
     }
 
-    //console.log(JSON.stringify(pipeline, null, 4));
     if (dto.postFilter)
       pipeline.push({
         $match: dto.postFilter,
@@ -158,35 +148,6 @@ export class DocAggregator<
 
     let finalData = rawData;
 
-    let transformationOptions = this.transformOptions ?? {};
-
-    if (this.responseDiscriminator) {
-      finalData = finalData.map((item) => {
-        const type = item[this.responseDiscriminator.discriminator.property];
-        const subType = this.responseDiscriminator.discriminator.subTypes.find(
-          (subType) => subType.name === type
-        );
-        if (!subType)
-          throw new Error(
-            `Could not find class constructor for type '${type}'`
-          );
-        const options = {
-          ...transformationOptions,
-        };
-        if (this.transformFn)
-          options.groups = this.transformFn(item, this.ctx.user);
-        return plainToInstance(subType.value, item, options);
-      });
-    } else if (this.responseDto) {
-      finalData = finalData.map((item) => {
-        const options = {
-          ...transformationOptions,
-        };
-        if (this.transformFn)
-          options.groups = this.transformFn(item, this.ctx.user);
-        return plainToInstance(this.responseDto, item, options);
-      });
-    }
     return {
       data: finalData,
       countQuery: countPipeline,
@@ -204,7 +165,7 @@ export class DocAggregator<
   public async aggregateAndCount(
     dto: TransformedSearchDto,
     pathOptions: PathOptions = {}
-  ): Promise<SearchResult<TResponseDto>> {
+  ): Promise<SearchResult<any>> {
     const res = await this._aggregate(dto, pathOptions);
     const that = this;
     const result = {
@@ -220,7 +181,7 @@ export class DocAggregator<
     return result;
   }
 
-  private paginate(query: TransformedSearchDto, count: number): Pagination {
+  public paginate(query: TransformedSearchDto, count: number): Pagination {
     return {
       total: count,
       page: query.page,
@@ -229,5 +190,80 @@ export class DocAggregator<
         (query.page + 1) * query.limit >= count ? undefined : query.page + 1,
       prev: query.page == 0 ? undefined : query.page - 1,
     };
+  }
+}
+
+export class DocAggregator<
+  TResponseDtoClass extends new () => TResponseDto,
+  TResponseDto = InstanceType<TResponseDtoClass>
+> extends PlainDocAggregator {
+  private responseDto: TResponseDtoClass;
+
+  constructor(
+    protected model: Model<any>,
+    baseDto: TResponseDtoClass,
+    options?: DocAggregatorOptions
+  ) {
+    super(model, options);
+    this.responseDto = baseDto;
+  }
+
+  public async aggregate(
+    dto: TransformedSearchDto,
+    pathOptions: PathOptions = {}
+  ): Promise<TResponseDto[]> {
+    const res = await super._aggregate(dto, pathOptions);
+    return this.transformData(res.data);
+  }
+
+  public async aggregateAndCount(
+    dto: TransformedSearchDto,
+    pathOptions: PathOptions = {}
+  ): Promise<SearchResult<TResponseDto>> {
+    const res = await this._aggregate(dto, pathOptions);
+    const that = this;
+    const result = {
+      pagination: null,
+      data: this.transformData(res.data),
+      paginate: async function () {
+        this.pagination = that.paginate(
+          dto,
+          (await that.model.aggregate(res.countQuery))[0]?.total || 0
+        );
+      },
+    };
+    return result;
+  }
+
+  private transformData(data: any[]): TResponseDto[] {
+    let transformationOptions = this.transformOptions ?? {};
+
+    if (this.responseDiscriminator) {
+      return data.map((item) => {
+        const type = item[this.responseDiscriminator.discriminator.property];
+        const subType = this.responseDiscriminator.discriminator.subTypes.find(
+          (subType) => subType.name === type
+        );
+        if (!subType)
+          throw new Error(
+            `Could not find class constructor for type '${type}'`
+          );
+        const options = {
+          ...transformationOptions,
+        };
+        if (this.transformFn)
+          options.groups = this.transformFn(item, this.ctx.user);
+        return plainToInstance(subType.value, item, options) as TResponseDto;
+      });
+    } else if (this.responseDto) {
+      return data.map((item) => {
+        const options = {
+          ...transformationOptions,
+        };
+        if (this.transformFn)
+          options.groups = this.transformFn(item, this.ctx.user);
+        return plainToInstance(this.responseDto, item, options);
+      });
+    }
   }
 }
