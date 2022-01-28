@@ -15,7 +15,7 @@ type DocAggregatorOptions = {
   descriminator?: DiscriminatorDescDto;
   transformOptions?: ClassTransformOptions;
   transformFn?: (item: any, user?: any) => string[];
-  ctx: { user: any };
+  ctx: { user?: any };
 };
 
 export class DocAggregator<
@@ -26,7 +26,7 @@ export class DocAggregator<
   private responseDiscriminator: DiscriminatorDescDto;
   private transformOptions: ClassTransformOptions;
   private transformFn: (item: any, user?: any) => string[];
-  private ctx: { user: any };
+  private ctx: { user?: any };
 
   constructor(
     private model: Model<any>,
