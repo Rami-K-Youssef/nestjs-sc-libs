@@ -9,7 +9,7 @@ import { Reflector } from "@nestjs/core";
 import { BaseResponseDto } from "./../../search-pagination/definitions";
 import { ClassTransformOptions, plainToInstance } from "class-transformer";
 import { Document } from "mongoose";
-import { SearchResult } from "@app/search-pagination";
+import { SearchResult } from "./../../search-pagination/dto/pagination.dto";
 
 const IgnoredPropertyName = Symbol("IgnoredPropertyName");
 
