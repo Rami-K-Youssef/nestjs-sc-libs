@@ -31,10 +31,10 @@ export class DocAggregator<
   constructor(
     private model: Model<any>,
     baseDto: TResponseDtoClass,
-    options: DocAggregatorOptions
+    options?: DocAggregatorOptions
   ) {
     this.responseDto = baseDto;
-    this.ctx = options.ctx;
+    this.ctx = options?.ctx;
     if (options.descriminator)
       this.responseDiscriminator = options.descriminator;
     if (options.transformFn) this.transformFn = options.transformFn;
