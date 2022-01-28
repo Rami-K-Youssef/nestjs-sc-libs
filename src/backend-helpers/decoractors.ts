@@ -12,7 +12,7 @@ export const RequestUser = createParamDecorator(
 );
 
 export function TransformDto(
-  dto: BaseResponseDto,
+  dto: typeof BaseResponseDto,
   options: TransformOptions,
   groupFn: (item: any, user?: any) => string[]
 ) {
