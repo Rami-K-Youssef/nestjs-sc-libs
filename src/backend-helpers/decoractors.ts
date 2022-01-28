@@ -2,7 +2,10 @@ import { createParamDecorator, ExecutionContext } from "@nestjs/common";
 
 import { SetMetadata } from "@nestjs/common";
 import { BaseResponseDto } from "./../search-pagination/definitions";
-import { TransformOptions } from "class-transformer";
+import {
+  ClassTransformOptions,
+  DiscriminatorDescriptor,
+} from "class-transformer";
 import { applyDecorators } from "@nestjs/common";
 
 export const RequestUser = createParamDecorator(
@@ -11,9 +14,13 @@ export const RequestUser = createParamDecorator(
   }
 );
 
+export interface ClassTransformerOptionsExt extends ClassTransformOptions {
+  discriminator: DiscriminatorDescriptor;
+}
+
 export function TransformDto(
   dto: typeof BaseResponseDto,
-  options?: TransformOptions,
+  options?: ClassTransformerOptionsExt,
   groupFn?: (item: any, user?: any) => string[]
 ) {
   return applyDecorators(

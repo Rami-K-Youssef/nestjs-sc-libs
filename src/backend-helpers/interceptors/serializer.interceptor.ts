@@ -16,6 +16,8 @@ import {
 import { Document } from "mongoose";
 import { SearchResult } from "./../../search-pagination/dto/pagination.dto";
 import { map } from "rxjs";
+import { ClassTransformerOptionsExt } from "../decoractors";
+import { plainToDiscrimnator } from "@app/search-pagination";
 
 const IgnoredPropertyName = Symbol("IgnoredPropertyName");
 
@@ -78,7 +80,7 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
 
   cSerialize(
     response: PlainLiteralObject | PlainLiteralObject[],
-    transformOptions: ClassTransformOptions,
+    transformOptions: ClassTransformerOptionsExt,
     dto: typeof BaseResponseDto,
     groupFn: (item: any, user?: any) => string[],
     user: any
@@ -92,14 +94,28 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
         const options = { ...(transformOptions ?? {}) };
         const item = obj.toObject();
         if (groupFn) options.groups = groupFn(item, user);
-        return instanceToPlain(plainToInstance(dto, item, options), options);
+        const instance = options.discriminator
+          ? (plainToDiscrimnator(
+              options.discriminator,
+              item,
+              options
+            ) as BaseResponseDto)
+          : plainToInstance(dto, item, options);
+        return instanceToPlain(instance, options);
       } else if (obj instanceof BaseResponseDto)
         return instanceToPlain(obj, transformOptions);
       else {
         const options = { ...(transformOptions ?? {}) };
         const item = obj;
         if (groupFn) options.groups = groupFn(item, user);
-        return instanceToPlain(plainToInstance(dto, obj, options), options);
+        const instance = options.discriminator
+          ? (plainToDiscrimnator(
+              options.discriminator,
+              item,
+              options
+            ) as BaseResponseDto)
+          : plainToInstance(dto, item, options);
+        return instanceToPlain(instance, options);
       }
     };
 
