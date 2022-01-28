@@ -13,8 +13,8 @@ export const RequestUser = createParamDecorator(
 
 export function TransformDto(
   dto: typeof BaseResponseDto,
-  options: TransformOptions,
-  groupFn: (item: any, user?: any) => string[]
+  options?: TransformOptions,
+  groupFn?: (item: any, user?: any) => string[]
 ) {
   return applyDecorators(
     SetMetadata("class_serializer:options", options),

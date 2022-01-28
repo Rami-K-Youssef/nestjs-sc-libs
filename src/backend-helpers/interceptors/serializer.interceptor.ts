@@ -4,12 +4,18 @@ import {
   ExecutionContext,
   Injectable,
   PlainLiteralObject,
+  StreamableFile,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { BaseResponseDto } from "./../../search-pagination/definitions";
-import { ClassTransformOptions, plainToInstance } from "class-transformer";
+import {
+  ClassTransformOptions,
+  instanceToPlain,
+  plainToInstance,
+} from "class-transformer";
 import { Document } from "mongoose";
 import { SearchResult } from "./../../search-pagination/dto/pagination.dto";
+import { map } from "rxjs";
 
 const IgnoredPropertyName = Symbol("IgnoredPropertyName");
 
@@ -22,11 +28,11 @@ export function CustomInterceptorIgnore() {
     descriptor.value[IgnoredPropertyName] = true;
   };
 }
+const isObject = (obj) =>
+  !(typeof obj === "undefined" || obj === null) && typeof obj === "object";
 
 @Injectable()
 export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor {
-  private dto: typeof BaseResponseDto;
-  private transformOptions: ClassTransformOptions;
   constructor(protected reflector: Reflector) {
     super(reflector);
   }
@@ -36,36 +42,75 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
     if (isIgnored) {
       return next.handle();
     } else {
-      this.dto = this.reflector.get(
+      const dto = this.reflector.get(
         "class_serializer:dto",
         context.getHandler()
       );
-      this.transformOptions = this.reflector.get(
+      const transformOptions = this.reflector.get(
         "class_serializer:options",
         context.getHandler()
       );
-      return super.intercept(context, next);
+      const groupFn = this.reflector.get(
+        "class_serializer:groupFn",
+        context.getHandler()
+      );
+      const user = context.switchToHttp().getRequest().user;
+      const contextOptions = this.getContextOptions(context);
+      const options = Object.assign(
+        Object.assign({}, this.defaultOptions),
+        contextOptions
+      );
+      return next
+        .handle()
+        .pipe(
+          map((res) =>
+            this.cSerialize(
+              res,
+              { ...options, ...transformOptions },
+              dto,
+              groupFn,
+              user
+            )
+          )
+        );
     }
   }
 
-  serialize(
+  cSerialize(
     response: PlainLiteralObject | PlainLiteralObject[],
-    options: ClassTransformOptions
+    transformOptions: ClassTransformOptions,
+    dto: typeof BaseResponseDto,
+    groupFn: (item: any, user?: any) => string[],
+    user: any
   ): PlainLiteralObject | PlainLiteralObject[] {
+    if (!isObject(response) || response instanceof StreamableFile) {
+      return response;
+    }
+
     const fn = (obj) => {
-      if (obj instanceof Document)
-        return plainToInstance(this.dto, obj.toObject(), this.transformOptions);
-      else if (obj instanceof BaseResponseDto) return obj;
-      else return plainToInstance(this.dto, obj, this.transformOptions);
+      if (obj instanceof Document) {
+        const options = { ...(transformOptions ?? {}) };
+        const item = obj.toObject();
+        if (groupFn) options.groups = groupFn(item, user);
+        return instanceToPlain(plainToInstance(dto, item, options), options);
+      } else if (obj instanceof BaseResponseDto)
+        return instanceToPlain(obj, transformOptions);
+      else {
+        const options = { ...(transformOptions ?? {}) };
+        const item = obj;
+        if (groupFn) options.groups = groupFn(item, user);
+        return instanceToPlain(plainToInstance(dto, obj, options), options);
+      }
     };
+
     if (response instanceof SearchResult) {
       delete response.paginate;
-      const data = super.serialize(response.data.map(fn), options);
+      const data = response.data.map(fn);
       return { data, pagination: response.pagination };
     } else if (Array.isArray(response)) {
-      return super.serialize(response.map(fn), options);
+      return response.map(fn);
     } else {
-      return super.serialize(fn(response), options);
+      return fn(response);
     }
   }
 }
