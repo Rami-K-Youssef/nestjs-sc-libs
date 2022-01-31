@@ -64,7 +64,7 @@ export class BaseResponseDto {
     },
     { toClassOnly: true }
   )
-  _id: string;
+  _id?: string;
 
   @Expose()
   @Transform(
@@ -75,11 +75,11 @@ export class BaseResponseDto {
     },
     { toPlainOnly: true }
   )
-  id: string;
+  id?: string;
   @Expose()
-  createdAt: Date;
+  createdAt?: Date;
   @Expose()
-  updatedAt: Date;
+  updatedAt?: Date;
 }
 
 export interface DiscriminatorDescDto {

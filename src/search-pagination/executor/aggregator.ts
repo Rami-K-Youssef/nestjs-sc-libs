@@ -2,35 +2,26 @@ import { ClassTransformOptions, plainToInstance } from "class-transformer";
 import { Document, LeanDocument, Model } from "mongoose";
 import { resolvePathFilters } from "./path-resolver";
 import { Pagination, SearchResult, TransformedSearchDto } from "..";
-import {
-  BaseResponseDto,
-  DiscriminatorDescDto,
-  LookupFlags,
-  PathOptions,
-} from "../definitions";
+import { DiscriminatorDescDto, LookupFlags, PathOptions } from "../definitions";
 
 import { checkPathAndReturnDescriptor } from "./../parsers/path-checker";
 
-type DocAggregatorOptions = {
+interface BaseDocAggregatorOptions {
+  ctx?: { user?: any };
+}
+
+interface PlainDocAggregatorOptions extends BaseDocAggregatorOptions {}
+
+interface DocAggregatorOptions extends PlainDocAggregatorOptions {
   discriminator?: DiscriminatorDescDto;
   transformOptions?: ClassTransformOptions;
   transformFn?: (item: any, user?: any) => string[];
-  ctx: { user?: any };
-};
+}
 
-export class PlainDocAggregator {
-  protected responseDiscriminator: DiscriminatorDescDto;
-  protected transformOptions: ClassTransformOptions;
-  protected transformFn: (item: any, user?: any) => string[];
+class BaseDocAggregator<T extends Document> {
   protected ctx: { user?: any };
-
-  constructor(protected model: Model<any>, options?: DocAggregatorOptions) {
+  constructor(protected model: Model<T>, options?: PlainDocAggregatorOptions) {
     this.ctx = options?.ctx;
-    if (options?.discriminator)
-      this.responseDiscriminator = options.discriminator;
-    if (options?.transformFn) this.transformFn = options.transformFn;
-    if (options?.transformOptions)
-      this.transformOptions = options.transformOptions;
   }
 
   protected async _aggregate(
@@ -153,6 +144,26 @@ export class PlainDocAggregator {
     };
   }
 
+  protected paginate(query: TransformedSearchDto, count: number): Pagination {
+    return {
+      total: count,
+      page: query.page,
+      limit: query.limit,
+      next:
+        (query.page + 1) * query.limit >= count ? undefined : query.page + 1,
+      prev: query.page == 0 ? undefined : query.page - 1,
+    };
+  }
+}
+
+export class PlainDocAggregator<
+  T extends Document,
+  TLean = LeanDocument<T>
+> extends BaseDocAggregator<T> {
+  constructor(protected model: Model<T>, options?: PlainDocAggregatorOptions) {
+    super(model, options);
+  }
+
   public async aggregate(
     dto: TransformedSearchDto,
     pathOptions: PathOptions = {}
@@ -164,7 +175,7 @@ export class PlainDocAggregator {
   public async aggregateAndCount(
     dto: TransformedSearchDto,
     pathOptions: PathOptions = {}
-  ): Promise<SearchResult<any>> {
+  ): Promise<SearchResult<TLean>> {
     const res = await this._aggregate(dto, pathOptions);
     const that = this;
     const result = {
@@ -180,25 +191,17 @@ export class PlainDocAggregator {
     };
     return new SearchResult(result);
   }
-
-  public paginate(query: TransformedSearchDto, count: number): Pagination {
-    return {
-      total: count,
-      page: query.page,
-      limit: query.limit,
-      next:
-        (query.page + 1) * query.limit >= count ? undefined : query.page + 1,
-      prev: query.page == 0 ? undefined : query.page - 1,
-    };
-  }
 }
 
 export class DocAggregator<
+  T extends Document,
   TResponseDtoClass extends new () => TResponseDto,
   TResponseDto = InstanceType<TResponseDtoClass>
-> extends PlainDocAggregator {
+> extends BaseDocAggregator<T> {
   private responseDto: TResponseDtoClass;
-
+  protected responseDiscriminator: DiscriminatorDescDto;
+  protected transformOptions: ClassTransformOptions;
+  protected transformFn: (item: any, user?: any) => string[];
   constructor(
     protected model: Model<any>,
     baseDto: TResponseDtoClass,
@@ -206,6 +209,11 @@ export class DocAggregator<
   ) {
     super(model, options);
     this.responseDto = baseDto;
+    if (options?.discriminator)
+      this.responseDiscriminator = options.discriminator;
+    if (options?.transformFn) this.transformFn = options.transformFn;
+    if (options?.transformOptions)
+      this.transformOptions = options.transformOptions;
   }
 
   public async aggregate(
