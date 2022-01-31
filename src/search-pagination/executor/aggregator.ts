@@ -18,17 +18,17 @@ export class DocAggregator<
   TResponseDto = InstanceType<TResponseDtoClass>
 > {
   private responseDto: TResponseDtoClass;
-  private responseDescriminator: DiscriminatorDescDto;
+  private responseDiscriminator: DiscriminatorDescDto;
   private transformOptions: TransformOptions;
 
   constructor(
     private model: Model<any>,
     baseDto: TResponseDtoClass,
-    descriminator?: DiscriminatorDescDto,
+    discriminator?: DiscriminatorDescDto,
     transformOptions?: TransformOptions
   ) {
     this.responseDto = baseDto;
-    this.responseDescriminator = descriminator;
+    this.responseDiscriminator = discriminator;
     this.transformOptions = transformOptions;
   }
 
@@ -147,10 +147,10 @@ export class DocAggregator<
     const countPipeline = [...pipeline, { $count: "total" }];
 
     let finalData = rawData;
-    if (this.responseDescriminator) {
+    if (this.responseDiscriminator) {
       finalData = finalData.map((item) => {
-        const type = item[this.responseDescriminator.discriminator.property];
-        const subType = this.responseDescriminator.discriminator.subTypes.find(
+        const type = item[this.responseDiscriminator.discriminator.property];
+        const subType = this.responseDiscriminator.discriminator.subTypes.find(
           (subType) => subType.name === type
         );
         if (!subType)
