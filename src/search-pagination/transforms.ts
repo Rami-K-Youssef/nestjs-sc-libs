@@ -1,4 +1,10 @@
-import { Transform, Type } from "class-transformer";
+import {
+  Transform,
+  Type,
+  plainToInstance,
+  DiscriminatorDescriptor,
+  ClassTransformOptions,
+} from "class-transformer";
 import { Types } from "mongoose";
 
 export const TransformIdOrDto = (
@@ -39,3 +45,17 @@ export const TransformIds = (): PropertyDecorator => {
     )(...args);
   };
 };
+
+export function plainToDiscrimnator(
+  discriminator: DiscriminatorDescriptor,
+  plain: any,
+  options?: ClassTransformOptions
+) {
+  const type = (plain as any)[discriminator.property];
+  const subType = discriminator.subTypes.find(
+    (subType) => subType.name === type
+  );
+  if (!subType)
+    throw new Error(`Could not find class constructor for type '${type}'`);
+  return plainToInstance(subType.value, plain, options);
+}
