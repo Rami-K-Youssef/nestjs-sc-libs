@@ -19,7 +19,7 @@ export interface ClassTransformerOptionsExt extends ClassTransformOptions {
 }
 
 export function TransformDto(
-  dto: (...args: any[]) => unknown,
+  dto: new (...args: any[]) => unknown,
   options?: ClassTransformerOptionsExt,
   groupFn?: (item: any, user?: any) => string[]
 ) {
