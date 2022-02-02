@@ -10,6 +10,7 @@ export const SearchKey = (options?: CollectionPropertyOptions) => {
     const filterable = options?.filterable ?? false;
     const def = options?.defaultSort ?? false;
     const isId = options?.isId ?? false;
+    const isDate = options?.isDate ?? false;
     const includeInMinifed = options?.includeInMinifed ?? false;
     const isArray = options?.isArray ?? false;
     target.__props[propName] = {
@@ -18,6 +19,7 @@ export const SearchKey = (options?: CollectionPropertyOptions) => {
       filterable,
       defaultSort: def,
       isId,
+      isDate,
       includeInMinifed,
       pathClass: options?.pathClass,
       isArray,

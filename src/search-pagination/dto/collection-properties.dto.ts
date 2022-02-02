@@ -26,11 +26,11 @@ export abstract class StampedCollectionProperties
   })
   createdAt: Date;
 
-  @SearchKey({ filterable: true, sortable: true })
+  @SearchKey({ filterable: true, sortable: true, isDate: true })
   deletedAt: Date;
 
   @Expose()
-  @SearchKey({ filterable: true, sortable: true })
+  @SearchKey({ filterable: true, sortable: true, isDate: true })
   updatedAt: Date;
 
   @SearchKey({ filterable: true, sortable: true })
