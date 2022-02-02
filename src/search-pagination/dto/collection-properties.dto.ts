@@ -23,6 +23,7 @@ export abstract class StampedCollectionProperties
     defaultSort: true,
     sortable: true,
     filterable: true,
+    isDate: true,
   })
   createdAt: Date;
 
