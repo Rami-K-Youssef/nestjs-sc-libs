@@ -9,41 +9,6 @@ import { Types } from "mongoose";
 import { Expose, Transform } from "class-transformer";
 import { ApiHideProperty } from "@nestjs/swagger";
 
-export abstract class BaseCollectionProperties implements ISearchable {
-  @SearchKey({
-    filterable: true,
-    includeInMinifed: true,
-    isId: true,
-    name: "id",
-  })
-  _id: Types.ObjectId;
-
-  __props?: Record<string, CollectionPropertyOptions>;
-}
-
-export abstract class StampedCollectionProperties
-  extends BaseCollectionProperties
-  implements ISearchable
-{
-  @SearchKey({
-    defaultSort: true,
-    sortable: true,
-    filterable: true,
-  })
-  createdAt: Date;
-
-  @SearchKey({ filterable: true, sortable: true })
-  deletedAt: Date;
-
-  @SearchKey({ filterable: true, sortable: true })
-  updatedAt: Date;
-
-  @SearchKey({ filterable: true, sortable: true })
-  isDeleted: boolean;
-
-  __props?: Record<string, CollectionPropertyOptions>;
-}
-
 export interface CollectionPropertyOptions {
   readonly name?: string;
   readonly sortable?: boolean;

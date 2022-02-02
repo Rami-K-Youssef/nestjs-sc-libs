@@ -4,8 +4,6 @@ export * from "./executor";
 export {
   ISearchable,
   ISearchableClass,
-  BaseCollectionProperties,
-  StampedCollectionProperties,
   BaseResponseDto,
   DiscriminatorDescDto,
   PathOptions,
