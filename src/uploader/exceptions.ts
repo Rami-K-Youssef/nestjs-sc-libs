@@ -46,3 +46,12 @@ export class FileNotFoundException extends GenCodedException(
   HttpStatus.NOT_FOUND,
   'FILE_NOT_FOUND',
 ) {}
+
+export class InvalidPdfFileException extends GenCodedException(
+  HttpStatus.BAD_REQUEST,
+  'INVALID_PDF_FILE',
+) {
+  constructor(args: { fieldName: string }) {
+    super('Invalid PDF', args);
+  }
+}
