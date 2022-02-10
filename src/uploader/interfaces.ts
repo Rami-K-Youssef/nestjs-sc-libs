@@ -8,6 +8,7 @@ export interface SingleFieldUploadOptions {
   minNumFiles: number;
   isPrivate?: boolean;
   pipeline?: FilePipeline;
+  isOptional?: boolean;
 }
 
 export type FieldUploadOptions = Record<string, SingleFieldUploadOptions>;

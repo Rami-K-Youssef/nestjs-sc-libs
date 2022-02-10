@@ -1,11 +1,11 @@
-import { PipelineAction } from ".";
-import { SingleFieldUploadOptions } from "..";
-import { UploadedFile } from "../interfaces";
-import { StorageFunction } from "../storage";
-import * as fs from "fs";
-import * as path from "path";
-import * as uuid from "uuid";
-import { Readable } from "stream";
+import { PipelineAction } from '.';
+import { SingleFieldUploadOptions } from '..';
+import { UploadedFile } from '../interfaces';
+import { StorageFunction } from '../storage';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as uuid from 'uuid';
+import { Readable } from 'stream';
 
 export class FilePipeline {
   protected _actions = [] as PipelineAction[];
@@ -18,7 +18,7 @@ export class FilePipeline {
 
   public setOptions(
     options: SingleFieldUploadOptions,
-    storageCallback: StorageFunction
+    storageCallback: StorageFunction,
   ) {
     this.options = options;
     this.storageCallback = storageCallback;
@@ -26,13 +26,13 @@ export class FilePipeline {
 
   protected async storeTemp(file: Express.Multer.File) {
     return new Promise<void>((resolve, reject) => {
-      const storagePath = "temp"; //should be configurable
+      const storagePath = 'temp'; //should be configurable
       const filename = uuid.v4();
       this._tempFilePath = path.join(storagePath, filename);
       const writeStream = fs.createWriteStream(this._tempFilePath);
       file.stream.pipe(writeStream);
-      writeStream.on("finish", resolve);
-      writeStream.on("error", reject);
+      writeStream.on('finish', resolve);
+      writeStream.on('error', reject);
     });
   }
 
@@ -41,7 +41,7 @@ export class FilePipeline {
     file: Express.Multer.File,
     stream: Readable,
     storageCallback: StorageFunction,
-    action: PipelineAction
+    action: PipelineAction,
   ) {
     return action.method.call(
       this,
@@ -49,7 +49,7 @@ export class FilePipeline {
       file,
       stream,
       storageCallback,
-      ...(action.args ?? [])
+      ...(action.args ?? []),
     );
   }
 
@@ -63,14 +63,14 @@ export class FilePipeline {
         file,
         fs.createReadStream(this._tempFilePath),
         this.storageCallback,
-        this._mainFileAction
+        this._mainFileAction,
       );
       this._resultingFiles.push(result);
 
-      const lastDotIndex = file.filename.lastIndexOf(".");
+      const lastDotIndex = file.filename.lastIndexOf('.');
       const fileName = file.filename.substring(0, lastDotIndex);
       const fileExtension =
-        lastDotIndex == -1 ? "" : file.filename.substring(lastDotIndex);
+        lastDotIndex == -1 ? '' : file.filename.substring(lastDotIndex);
 
       for (const action of this._actions) {
         const filename = fileName + `-${action.name}` + fileExtension;
@@ -79,7 +79,7 @@ export class FilePipeline {
           file,
           action.skipStream ? null : fs.createReadStream(this._tempFilePath),
           this.storageCallback,
-          action
+          action,
         );
         if (subFile) {
           result.processedFiles[action.name] = subFile;
@@ -92,7 +92,7 @@ export class FilePipeline {
       await Promise.allSettled(
         this._resultingFiles.map(async (resultingFile) => {
           await resultingFile.delete();
-        })
+        }),
       );
       throw err;
     } finally {
@@ -143,7 +143,7 @@ function persistFile(
   name: string,
   file: Express.Multer.File,
   stream: Readable,
-  storageCallback: StorageFunction
+  storageCallback: StorageFunction,
 ) {
   return storageCallback(file, name, stream, this.options);
 }

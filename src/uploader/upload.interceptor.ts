@@ -5,21 +5,21 @@ import {
   NestInterceptor,
   NotFoundException,
   mixin,
-} from "@nestjs/common";
-import { NextFunction, Request, Response } from "express";
-import multer from "multer";
-import { catchError, Observable, tap } from "rxjs";
-import { RequestWithUploadedFiles, UploadedFile } from ".";
-import { InvalidMimeTypeException } from "./exceptions";
-import { FieldUploadOptions, UploadOptions } from "./interfaces";
-import { BaseUploadInterceptor } from "./local-upload.interceptor";
-import { generateStorageEngine } from "./storage";
-import { StorageProvider } from "./storage/provider";
+} from '@nestjs/common';
+import { NextFunction, Request, Response } from 'express';
+import * as multer from 'multer';
+import { catchError, Observable, tap } from 'rxjs';
+import { RequestWithUploadedFiles, UploadedFile } from '.';
+import { FileMissingException, InvalidMimeTypeException } from './exceptions';
+import { FieldUploadOptions, UploadOptions } from './interfaces';
+import { BaseUploadInterceptor } from './local-upload.interceptor';
+import { generateStorageEngine } from './storage';
+import { StorageProvider } from './storage/provider';
 
 function checkFileType(
   mimeRegexes: RegExp[],
   file: Express.Multer.File,
-  cb: (Error?, boolean?) => void
+  cb: (Error?, boolean?) => void,
 ) {
   if (!mimeRegexes) return cb(null, true);
   const mimeType = mimeRegexes.some((regex) => regex.test(file.mimetype));
@@ -32,14 +32,14 @@ function checkFileType(
         allowedTypes: mimeRegexes,
         fieldName: file.fieldname,
         originalName: file.originalname,
-      })
+      }),
     );
   }
 }
 
 export function UploadInterceptor(
   fileDescriptors: FieldUploadOptions,
-  options?: UploadOptions
+  options?: UploadOptions,
 ): new (...args: any[]) => NestInterceptor {
   @Injectable()
   class InternalUploadInterceptor
@@ -52,7 +52,7 @@ export function UploadInterceptor(
 
     async intercept(
       context: ExecutionContext,
-      next: CallHandler<any>
+      next: CallHandler<any>,
     ): Promise<Observable<any>> {
       const fields = Object.entries(fileDescriptors).map(
         ([field, fieldOptions]) => {
@@ -61,7 +61,7 @@ export function UploadInterceptor(
             name: field,
             maxCount,
           };
-        }
+        },
       );
       const limits = {} as Record<string, any>;
       if (options && options.maxSizeInMegabytes)
@@ -70,7 +70,7 @@ export function UploadInterceptor(
         limits,
         storage: generateStorageEngine(
           { fileDescriptors },
-          this.storageProvider
+          this.storageProvider,
         ),
         fileFilter: function (req, file, cb) {
           checkFileType(options?.allowedMimeTypes, file, cb);
@@ -91,6 +91,15 @@ export function UploadInterceptor(
         });
       });
 
+      Object.entries(fileDescriptors).forEach(([fieldName, descriptor]) => {
+        if (
+          !descriptor.isOptional &&
+          (!request.uploadedFiles[fieldName] ||
+            request.uploadedFiles[fieldName].length == 0)
+        )
+          throw new FileMissingException({ fieldName });
+      });
+
       return next.handle().pipe(
         tap((res) => {
           //console.log(request.uploadedFiles);
@@ -102,11 +111,11 @@ export function UploadInterceptor(
               uploadedFile.delete().catch(console.error);
               if (uploadedFile.processedFiles)
                 Object.values(uploadedFile.processedFiles).forEach((file) =>
-                  file.delete().catch(console.error)
+                  file.delete().catch(console.error),
                 );
             });
           return Promise.reject(err);
-        })
+        }),
       );
     }
   }

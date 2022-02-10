@@ -2,7 +2,7 @@ import { DynamicModule, Global, Inject, Module } from '@nestjs/common';
 import { UploadModuleOptions, UploadModuleStorageType } from '.';
 import { UPLOAD_MODULE_OPTIONS } from './consts';
 import { StorageProvider } from './storage/provider';
-import { ServeStaticModule } from '@nestjs/serve-static';
+import { ServeStaticModule } from './../serve-static/serve-static.module';
 
 import * as path from 'path';
 
@@ -28,10 +28,10 @@ export class UploadModule {
             )
               ? options.localStorageOptions.publicServePath
               : '/' + options.localStorageOptions.publicServePath,
-            rootPath: path.join(
-              options.localStorageOptions.storageDir,
-              'public',
-            ),
+            // rootPath: path.join(
+            //   options.localStorageOptions.storageDir,
+            //   'public',
+            // ),
           }),
         ],
         providers: [

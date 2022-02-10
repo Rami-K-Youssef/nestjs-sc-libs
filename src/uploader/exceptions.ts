@@ -1,9 +1,9 @@
-import { HttpStatus } from "@nestjs/common";
-import { GenCodedException } from "./../backend-helpers/exceptions";
+import { HttpStatus } from '@nestjs/common';
+import { GenCodedException } from './../backend-helpers/exceptions';
 
 export class InvalidAspectRatioException extends GenCodedException(
   HttpStatus.BAD_REQUEST,
-  "ASPECT_RATIO_INVALID"
+  'ASPECT_RATIO_INVALID',
 ) {
   constructor(args: {
     min: number;
@@ -12,13 +12,13 @@ export class InvalidAspectRatioException extends GenCodedException(
     fieldName: string;
     originalName: string;
   }) {
-    super("Invalid Aspect Ratio", args);
+    super('Invalid Aspect Ratio', args);
   }
 }
 
 export class InvalidMimeTypeException extends GenCodedException(
   HttpStatus.BAD_REQUEST,
-  "MIME_TYPE_INVALID"
+  'MIME_TYPE_INVALID',
 ) {
   constructor(args: {
     mimeType: string;
@@ -27,8 +27,22 @@ export class InvalidMimeTypeException extends GenCodedException(
     originalName: string;
   }) {
     (args as any).allowedTypes = args.allowedTypes.map((regex) =>
-      regex.toString()
+      regex.toString(),
     );
-    super("Invalid Mime Type", args);
+    super('Invalid Mime Type', args);
   }
 }
+
+export class FileMissingException extends GenCodedException(
+  HttpStatus.BAD_REQUEST,
+  'FILE_REQUIRED',
+) {
+  constructor(args: { fieldName: string }) {
+    super('File Required', args);
+  }
+}
+
+export class FileNotFoundException extends GenCodedException(
+  HttpStatus.NOT_FOUND,
+  'FILE_NOT_FOUND',
+) {}
