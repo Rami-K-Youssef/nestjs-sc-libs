@@ -37,10 +37,14 @@ function patchDocumentMethodMiddleware(this, next) {
 
 const documentMethods = [
   "save",
-  "updateOne",
   "remove",
-  "deleteOne",
+  "updateOne",
   "updateMany",
+  "deleteOne",
+  "deleteMany",
+  "findOneAndDelete",
+  "findOneAndRemove",
+  "findOneAndUpdate",
 ] as Array<MongooseDocumentMiddleware | MongooseQueryMiddleware>;
 
 export const mongooseTrxPlugin = (schema: Schema) => {
