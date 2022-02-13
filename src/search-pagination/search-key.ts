@@ -22,6 +22,7 @@ export const SearchKey = (options?: CollectionPropertyOptions) => {
       isDate,
       includeInMinifed,
       pathClass: options?.pathClass,
+      prefix: options?.prefix,
       isArray,
     };
   };

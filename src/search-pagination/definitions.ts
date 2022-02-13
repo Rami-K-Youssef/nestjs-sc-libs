@@ -19,6 +19,7 @@ export interface CollectionPropertyOptions {
   readonly isDate?: boolean;
   readonly isArray?: boolean;
   readonly includeInMinifed?: boolean;
+  readonly prefix?: string;
 }
 
 export class BaseResponseDto {
