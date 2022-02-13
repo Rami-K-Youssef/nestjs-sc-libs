@@ -12,6 +12,7 @@ import archiver from "archiver";
 
 type File = {
   originalName?: string;
+  overrideName?: string;
   path?: string;
   url?: string;
 };
@@ -30,7 +31,7 @@ export class StorageProvider {
   }
 
   pipePrivateFile(res: Response, file: File) {
-    const name = file.originalName ?? "file";
+    const name = file.overrideName ?? file.originalName ?? "file";
     if (file.url) {
       // online
     } else {
@@ -52,7 +53,7 @@ export class StorageProvider {
           // online
         } else {
           if (fs.existsSync(fl.path)) {
-            archive.file(fl.path, { name: fl.originalName });
+            archive.file(fl.path, { name: fl.overrideName ?? fl.originalName });
           }
         }
       });
