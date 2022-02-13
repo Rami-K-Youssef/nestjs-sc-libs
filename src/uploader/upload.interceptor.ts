@@ -91,13 +91,27 @@ export function UploadInterceptor(
         });
       });
 
+      function deleteFilesOnError() {
+        Object.values(request.uploadedFiles)
+          .flatMap((item) => item)
+          .forEach((uploadedFile: UploadedFile) => {
+            uploadedFile.delete().catch(console.error);
+            if (uploadedFile.processedFiles)
+              Object.values(uploadedFile.processedFiles).forEach((file) =>
+                file.delete().catch(console.error)
+              );
+          });
+      }
+
       Object.entries(fileDescriptors).forEach(([fieldName, descriptor]) => {
         if (
           !descriptor.isOptional &&
           (!request.uploadedFiles[fieldName] ||
             request.uploadedFiles[fieldName].length == 0)
-        )
+        ) {
+          deleteFilesOnError();
           throw new FileMissingException({ fieldName });
+        }
       });
 
       return next.handle().pipe(
@@ -105,15 +119,7 @@ export function UploadInterceptor(
           //console.log(request.uploadedFiles);
         }),
         catchError((err) => {
-          Object.values(request.uploadedFiles)
-            .flatMap((item) => item)
-            .forEach((uploadedFile: UploadedFile) => {
-              uploadedFile.delete().catch(console.error);
-              if (uploadedFile.processedFiles)
-                Object.values(uploadedFile.processedFiles).forEach((file) =>
-                  file.delete().catch(console.error)
-                );
-            });
+          deleteFilesOnError();
           return Promise.reject(err);
         })
       );
