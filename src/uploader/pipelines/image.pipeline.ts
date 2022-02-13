@@ -1,10 +1,10 @@
-import { FilePipeline } from './pipeline-base';
-import sharp from 'sharp';
-import { ImageResizeOptions, ImageValidationOptions } from '.';
-import { InvalidAspectRatioException } from '../exceptions';
-import { StorageFunction } from '../storage';
-import { UploadedFile } from '..';
-import { Readable } from 'stream';
+import { FilePipeline } from "./pipeline-base";
+import sharp from "sharp";
+import { ImageResizeOptions, ImageValidationOptions } from ".";
+import { InvalidAspectRatioException } from "../exceptions";
+import { StorageFunction } from "../storage";
+import { UploadedFile } from "..";
+import { Readable } from "stream";
 
 export class ImagePipeline extends FilePipeline {
   protected _originalFileMetadata: sharp.Metadata;
@@ -40,7 +40,8 @@ async function validate(
   file: Express.Multer.File,
   $2: Readable,
   $3: StorageFunction,
-  options: ImageValidationOptions,
+  $4: any,
+  options: ImageValidationOptions
 ): Promise<UploadedFile> {
   const meta = await getMeta.call(this);
   if (options.aspectRatio) {
@@ -72,14 +73,15 @@ async function createThumbnail(
   file: Express.Multer.File,
   $2: Readable,
   storageCallback: StorageFunction,
-  options: ImageResizeOptions,
+  user: any,
+  options: ImageResizeOptions
 ) {
   const resizeOptions = options.options ?? ({} as sharp.ResizeOptions);
-  if (!resizeOptions.fit) resizeOptions.fit = 'cover';
+  if (!resizeOptions.fit) resizeOptions.fit = "cover";
   const stream = sharp(this._tempFilePath).resize(
     options.width,
     options.height,
-    resizeOptions,
+    resizeOptions
   );
-  return await storageCallback(file, name, stream, this.options);
+  return await storageCallback(file, name, stream, this.options, user);
 }

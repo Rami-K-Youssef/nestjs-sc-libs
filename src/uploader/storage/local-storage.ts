@@ -1,32 +1,39 @@
-import { SingleFieldUploadOptions } from '..';
-import { UploadedFile } from '../interfaces';
+import { SingleFieldUploadOptions } from "..";
+import { UploadedFile } from "../interfaces";
 
-import * as path from 'path';
-import * as fs from 'fs';
-import { Readable } from 'stream';
+import * as path from "path";
+import * as fs from "fs";
+import { Readable } from "stream";
 
 export function generateLocalStorageFunc(
   storageDir: string,
-  publicServePath: string,
+  publicServePath: string
 ) {
   return async function storeFileLocally(
     file: Express.Multer.File,
     name: string,
     stream: Readable,
     options: SingleFieldUploadOptions,
+    user?: any
   ): Promise<UploadedFile> {
     return new Promise<UploadedFile>((resolve, reject) => {
+      const optDestination = options.destination
+        ? typeof options.destination == "string"
+          ? options.destination
+          : options.destination(user)
+        : "";
+
       const finalDestination = path.join(
         storageDir,
-        options.isPrivate ? 'private' : 'public',
-        options.destination ?? '',
+        options.isPrivate ? "private" : "public",
+        optDestination
       );
 
       fs.mkdirSync(finalDestination, { recursive: true });
       const outStream = fs.createWriteStream(path.join(finalDestination, name));
       stream.pipe(outStream);
-      outStream.on('error', reject);
-      outStream.on('finish', () => {
+      outStream.on("error", reject);
+      outStream.on("finish", () => {
         resolve(
           new UploadedFile({
             fieldName: file.fieldname,
@@ -37,18 +44,14 @@ export function generateLocalStorageFunc(
             path: path.join(finalDestination, file.filename),
             url: options.isPrivate
               ? null
-              : path.join(
-                  publicServePath,
-                  options.destination ?? '',
-                  file.filename,
-                ),
+              : path.join(publicServePath, optDestination, file.filename),
             size: outStream.bytesWritten,
             processedFiles: {} as Record<string, UploadedFile>,
             delete: function () {
               return new Promise<void>((resolve, reject) => {
                 try {
                   if ((this as any).alreadyDeleted) {
-                    console.log('THIS SHOULD NOT HAPPEN');
+                    console.log("THIS SHOULD NOT HAPPEN");
                     return;
                   }
                   (this as any).alreadyDeleted = true;
@@ -59,7 +62,7 @@ export function generateLocalStorageFunc(
                 }
               });
             },
-          }),
+          })
         );
       });
     });

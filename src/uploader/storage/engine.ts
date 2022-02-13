@@ -1,30 +1,27 @@
-import { Request } from 'express';
-import multer from 'multer';
-import { CustomStorageOptions } from './types';
+import { Request } from "express";
+import multer from "multer";
+import { CustomStorageOptions } from "./types";
 
-import * as uuid from 'uuid';
-import * as path from 'path';
-import { FilePipeline, RequestWithUploadedFiles } from '..';
-import { StorageProvider } from './provider';
+import * as uuid from "uuid";
+import * as path from "path";
+import { FilePipeline, RequestWithUploadedFiles } from "..";
+import { StorageProvider } from "./provider";
 
 function getFileName(req, file, cb) {
-  cb(null, file.fieldname + '-' + uuid.v4() + path.extname(file.originalname));
+  cb(null, file.fieldname + "-" + uuid.v4() + path.extname(file.originalname));
 }
 
 class CustomStorageEngine implements multer.StorageEngine {
-  private opts: CustomStorageOptions;
-
   constructor(
-    opts: CustomStorageOptions,
+    private opts: CustomStorageOptions,
     private readonly storageProvider: StorageProvider,
-  ) {
-    this.opts = opts;
-  }
+    private readonly user?: any
+  ) {}
 
   _handleFile(
     req: RequestWithUploadedFiles,
     file: Express.Multer.File,
-    cb: (error?: any, info?: Partial<Express.Multer.File>) => void,
+    cb: (error?: any, info?: Partial<Express.Multer.File>) => void
   ) {
     getFileName(req, file, (err, filename) => {
       if (err) return cb(err);
@@ -32,7 +29,7 @@ class CustomStorageEngine implements multer.StorageEngine {
       const options = this.opts.fileDescriptors[file.fieldname];
       const pipeline = options.pipeline?.clone() ?? new FilePipeline();
       const storageFunc = this.storageProvider.getStorageFunc();
-      pipeline.setOptions(options, storageFunc);
+      pipeline.setOptions(options, storageFunc, this.user);
       // make it read from module properties later
       pipeline
         .runFile(file)
@@ -50,9 +47,9 @@ class CustomStorageEngine implements multer.StorageEngine {
   _removeFile(
     req: Request,
     file: Express.Multer.File,
-    callback: (error: Error) => void,
+    callback: (error: Error) => void
   ): void {
-    console.log('removing ', file);
+    console.log("removing ", file);
     callback(null);
   }
 }
@@ -60,6 +57,7 @@ class CustomStorageEngine implements multer.StorageEngine {
 export function generateStorageEngine(
   opts: CustomStorageOptions,
   storageProvider: StorageProvider,
+  user?: any
 ) {
-  return new CustomStorageEngine(opts, storageProvider);
+  return new CustomStorageEngine(opts, storageProvider, user);
 }

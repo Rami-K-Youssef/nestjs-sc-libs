@@ -9,6 +9,7 @@ export interface PipelineAction {
     file: Express.Multer.File,
     stream: Readable,
     storageCallback: StorageFunction,
+    user?: any,
     ...args: any[]
   ) => Promise<UploadedFile>;
   args?: any[];

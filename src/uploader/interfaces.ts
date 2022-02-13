@@ -1,9 +1,9 @@
-import { Exclude } from 'class-transformer';
-import { Request } from 'express';
-import { FilePipeline } from './pipelines';
+import { Exclude } from "class-transformer";
+import { Request } from "express";
+import { FilePipeline } from "./pipelines";
 
 export interface SingleFieldUploadOptions {
-  destination?: string;
+  destination?: string | ((user?: any) => string);
   maxNumFiles: number;
   minNumFiles: number;
   isPrivate?: boolean;
@@ -40,8 +40,8 @@ export type RequestWithUploadedFiles = Request & {
 };
 
 export enum UploadModuleStorageType {
-  LOCAL = 'LOCAL',
-  AWS = 'AWS',
+  LOCAL = "LOCAL",
+  AWS = "AWS",
 }
 
 export interface LocalStorageOptions {

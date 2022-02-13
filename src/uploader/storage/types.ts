@@ -1,6 +1,6 @@
-import { SingleFieldUploadOptions } from '..';
-import { FieldUploadOptions, UploadedFile } from '../interfaces';
-import { Readable } from 'stream';
+import { SingleFieldUploadOptions } from "..";
+import { FieldUploadOptions, UploadedFile } from "../interfaces";
+import { Readable } from "stream";
 
 export type CustomStorageOptions = {
   fileDescriptors: FieldUploadOptions;
@@ -11,4 +11,5 @@ export type StorageFunction = (
   name: string,
   readStream: Readable,
   options: SingleFieldUploadOptions,
+  user?: any
 ) => Promise<UploadedFile>;

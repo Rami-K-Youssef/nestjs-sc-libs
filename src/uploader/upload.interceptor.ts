@@ -54,6 +54,9 @@ export function UploadInterceptor(
       context: ExecutionContext,
       next: CallHandler<any>
     ): Promise<Observable<any>> {
+      const httpContext = context.switchToHttp();
+      const request = httpContext.getRequest<RequestWithUploadedFiles>();
+
       const fields = Object.entries(fileDescriptors).map(
         ([field, fieldOptions]) => {
           const maxCount = fieldOptions.maxNumFiles ?? 1;
@@ -70,15 +73,14 @@ export function UploadInterceptor(
         limits,
         storage: generateStorageEngine(
           { fileDescriptors },
-          this.storageProvider
+          this.storageProvider,
+          request["user"]
         ),
         fileFilter: function (req, file, cb) {
           checkFileType(options?.allowedMimeTypes, file, cb);
         },
       }).fields(fields);
 
-      const httpContext = context.switchToHttp();
-      const request = httpContext.getRequest<RequestWithUploadedFiles>();
       request.uploadedFiles = {} as Record<string, UploadedFile[]>;
       const response = httpContext.getResponse<Response>();
 
