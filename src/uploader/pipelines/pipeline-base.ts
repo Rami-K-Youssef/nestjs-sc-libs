@@ -53,6 +53,7 @@ export class FilePipeline {
       file,
       stream,
       storageCallback,
+      this.user,
       ...(action.args ?? [])
     );
   }
