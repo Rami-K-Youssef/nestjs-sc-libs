@@ -8,7 +8,7 @@ import { generateLocalStorageFunc } from "./local-storage";
 import * as fs from "fs";
 import { FileNotFoundException } from "../exceptions";
 
-import * as archiver from "archiver";
+import archiver from "archiver";
 
 type File = {
   originalName?: string;
