@@ -6,9 +6,15 @@ import { Response } from "express";
 import { generateLocalStorageFunc } from "./local-storage";
 
 import * as fs from "fs";
+import { FileNotFoundException } from "../exceptions";
+
 import * as archiver from "archiver";
 
-import { FileNotFoundException } from "../exceptions";
+type File = {
+  originalName?: string;
+  path?: string;
+  url?: string;
+};
 
 @Injectable()
 export class StorageProvider {
@@ -23,7 +29,7 @@ export class StorageProvider {
     );
   }
 
-  pipePrivateFile(res: Response, file: UploadedFile) {
+  pipePrivateFile(res: Response, file: File) {
     const name = file.originalName ?? "file";
     if (file.url) {
       // online
@@ -34,11 +40,7 @@ export class StorageProvider {
     res.setHeader("content-disposition", `attachment; filename=${name}`);
   }
 
-  async zipPrivateFiles(
-    res: Response,
-    name: string,
-    files: Array<UploadedFile>
-  ) {
+  async zipPrivateFiles(res: Response, name: string, files: Array<File>) {
     const archive = archiver("zip");
     return new Promise((resolve, reject) => {
       archive.on("error", function (err) {
