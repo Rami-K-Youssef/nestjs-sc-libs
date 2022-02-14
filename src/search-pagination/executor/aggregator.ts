@@ -40,7 +40,14 @@ class BaseDocAggregator<T extends Document> {
       });
     }
 
-    if (dto.pathProjection) {
+    if (pathOptions.$ROOT$.projection) {
+      pipeline.push({
+        $project: pathOptions.$ROOT$.projection.reduce((acc, val) => {
+          acc[val] = 1;
+          return acc;
+        }, {}),
+      });
+    } else if (dto.pathProjection) {
       pipeline.push({
         $project: dto.pathProjection.$ROOT$,
       });
