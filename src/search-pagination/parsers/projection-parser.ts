@@ -6,7 +6,7 @@ export class ProjectionParser {
 
   parse(dto: SearchDto) {
     if (!dto.minified) {
-      return null;
+      return {};
     } else {
       const props = Object.keys(this.baseClass.prototype.__props).filter(
         (prop) =>
