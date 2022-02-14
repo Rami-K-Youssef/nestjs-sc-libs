@@ -1,5 +1,5 @@
-import { SearchDto } from '..';
-import { ISearchableClass } from '../definitions';
+import { SearchDto } from "..";
+import { ISearchableClass } from "../definitions";
 
 export class ProjectionParser {
   constructor(private baseClass: ISearchableClass) {}
@@ -10,7 +10,7 @@ export class ProjectionParser {
     } else {
       const props = Object.keys(this.baseClass.prototype.__props).filter(
         (prop) =>
-          this.baseClass.prototype.__props[prop].includeInMinifed == true,
+          this.baseClass.prototype.__props[prop].includeInMinifed == true
       );
 
       return {
