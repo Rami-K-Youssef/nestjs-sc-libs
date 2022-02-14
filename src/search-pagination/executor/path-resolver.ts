@@ -69,11 +69,14 @@ export function resolvePathFilters(
   filter: Record<string, any>
 ) {
   const { groupedPathKeys, postFilter } = handleFilter(filter);
+  const sortedKeysDescending = Object.keys(paths).sort(
+    (a, b) => b.length - a.length
+  );
+  let match: string;
   Object.entries<ParsedKeyFilter[]>(groupedPathKeys).forEach(
     ([filterPath, filterValues]) => {
       if (filterPath in paths) {
-        delete groupedPathKeys[filterPath];
-        paths[filterPath].accessibility = paths[filterPath].accessibility ?? {};
+        paths[filterPath].accessibility ??= {};
         const $and = paths[filterPath].accessibility?.$and ?? [];
         $and.push(
           ...filterValues.map((item) => ({
@@ -81,17 +84,40 @@ export function resolvePathFilters(
           }))
         );
         paths[filterPath].accessibility.$and = $and;
+      } else if (
+        (match = sortedKeysDescending.find((key) => filterPath.startsWith(key)))
+      ) {
+        const newFilterPath = filterPath.substring(match.length + 1);
+        paths[match].accessibility ??= {};
+        const $and = paths[match].accessibility?.$and ?? [];
+        $and.push(
+          ...filterValues.map((item) => ({
+            [newFilterPath == ""
+              ? item.property
+              : newFilterPath + "." + item.property]: item.value,
+          }))
+        );
+        paths[match].accessibility.$and = $and;
+      } else {
+        paths["$ROOT$"].accessibility ??= {};
+        const $and = paths["$ROOT$"].accessibility?.$and ?? [];
+        $and.push(
+          ...filterValues.map((item) => ({
+            [item.originalKey]: item.value,
+          }))
+        );
+        paths["$ROOT$"].accessibility.$and = $and;
       }
     }
   );
   // fix postfilter to include all paths
-  const otherFilters = Object.values(groupedPathKeys)
-    .flatMap((item) => item)
-    .reduce<any[]>((acc, value: any) => {
-      acc.push({ [value.originalKey]: value.value });
-      return acc;
-    }, []) as [];
-  const filters = [...postFilter, ...otherFilters];
+  // const otherFilters = Object.values(groupedPathKeys)
+  //   .flatMap((item) => item)
+  //   .reduce<any[]>((acc, value: any) => {
+  //     acc.push({ [value.originalKey]: value.value });
+  //     return acc;
+  //   }, []) as [];
+  const filters = [...postFilter /*...otherFilters*/];
   if (filters.length == 0) return null;
   else return { $and: filters };
 }

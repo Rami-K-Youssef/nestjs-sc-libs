@@ -47,7 +47,7 @@ class BaseDocAggregator<T extends Document> {
           return acc;
         }, {}),
       });
-    } else if (dto.pathProjection) {
+    } else if (dto?.pathProjection?.$ROOT$) {
       pipeline.push({
         $project: dto.pathProjection.$ROOT$,
       });
