@@ -33,6 +33,7 @@ export class FilePipeline {
       const storagePath = "temp"; //should be configurable
       const filename = uuid.v4();
       this._tempFilePath = path.join(storagePath, filename);
+      fs.mkdirSync(storagePath, { recursive: true });
       const writeStream = fs.createWriteStream(this._tempFilePath);
       file.stream.pipe(writeStream);
       writeStream.on("finish", resolve);
@@ -60,8 +61,8 @@ export class FilePipeline {
 
   public async runFile(file: Express.Multer.File): Promise<UploadedFile> {
     try {
-      await this.storeTemp(file);
       this._resultingFiles = [] as UploadedFile[];
+      await this.storeTemp(file);
       if (!this._mainFileAction) this.persist();
       const result = await this.invokeAction(
         file.filename,
