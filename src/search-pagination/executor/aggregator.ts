@@ -68,6 +68,13 @@ class BaseDocAggregator<T extends Document> {
 
           if (dto.pathProjection[path]) {
             subpipeline.push({ $project: dto.pathProjection[path] });
+          } else if (value.projection) {
+            subpipeline.push({
+              $project: value.projection.reduce((acc, value) => {
+                acc[value] = 1;
+                return acc;
+              }, {}),
+            });
           } else if (dto.minified) {
             const props = Object.keys(propertyClass.prototype.__props).filter(
               (prop) =>
