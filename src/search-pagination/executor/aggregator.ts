@@ -153,7 +153,7 @@ class BaseDocAggregator<T extends Document> {
 
     const rawData = await this.model.aggregate([
       ...pipeline,
-      { $sort: dto.sort || { _id: 1 } },
+      { $sort: { ...dto.sort, _id: 1 } || { _id: 1 } },
       ...(() => {
         const res = [];
         if (dto.limit) {
