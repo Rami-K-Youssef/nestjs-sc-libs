@@ -49,7 +49,6 @@ class CustomStorageEngine implements multer.StorageEngine {
     file: Express.Multer.File,
     callback: (error: Error) => void
   ): void {
-    console.log("removing ", file);
     callback(null);
   }
 }

@@ -224,7 +224,6 @@ class BaseDocAggregator<T extends Document> {
           for (let i = 0; i < index; i++) {
             const key = entries[i][0];
             let val = lastItem[key];
-            console.log(key);
             if (typeof val == "object" && "toJSON" in val) val = val.toJSON();
             res[entries[i][0]] = val;
           }

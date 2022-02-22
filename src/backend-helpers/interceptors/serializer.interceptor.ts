@@ -120,7 +120,6 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
     };
 
     if (response instanceof SearchResult) {
-      delete response.paginate;
       const data = response.data.map(fn);
       return { data, pagination: response.pagination };
     } else if (Array.isArray(response)) {
