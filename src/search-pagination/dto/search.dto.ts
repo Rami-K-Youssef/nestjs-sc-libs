@@ -17,6 +17,7 @@ export class TransformedSearchDto {
   page?: number;
   limit?: number;
   minified = false;
+  isNext = false;
 
   baseClass: ISearchableClass;
 }
@@ -30,6 +31,15 @@ export class SearchDto {
   @Transform((v: TransformFnParams) => filterQueryToObject(v.value))
   @IsOptional()
   filter?: FilterableParameters;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "After query string, path filters apply at lookups, see documentation for its schema",
+  })
+  @Transform((v: TransformFnParams) => filterQueryToObject(v.value))
+  @IsOptional()
+  after?: FilterableParameters;
 
   @ApiPropertyOptional({
     type: String,

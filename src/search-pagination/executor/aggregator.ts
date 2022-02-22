@@ -29,14 +29,35 @@ class BaseDocAggregator<T extends Document> {
     pathOptions: PathOptions = {}
   ): Promise<{
     data: any[];
-    countQuery: any;
+    total: number;
+    after?: string;
   }> {
     const pipeline = [];
-    const postPathsFilter = resolvePathFilters(pathOptions, dto.filter ?? {});
+    const lookedUpPaths = [] as string[];
+    let postPathsFilter = resolvePathFilters(pathOptions, dto.filter ?? {});
+
+    function getAndRemoveReadyOrFilters(): { or: any; paths: string[] }[] {
+      const res = [] as any[];
+      postPathsFilter = postPathsFilter.filter((item) => {
+        if (item.paths.every((path) => lookedUpPaths.includes(path))) {
+          res.push(item.or);
+          return false;
+        }
+        return true;
+      });
+      return res;
+    }
 
     if (dto.filter || pathOptions.$ROOT$?.accessibility) {
+      const res = getAndRemoveReadyOrFilters();
+      const filter = pathOptions.$ROOT$?.accessibility ?? {};
+      if (res.length > 0) {
+        const $and = filter.$and ?? [];
+        $and.push(...res);
+        filter.$and = $and;
+      }
       pipeline.push({
-        $match: pathOptions.$ROOT$?.accessibility ?? {},
+        $match: filter,
       });
     }
 
@@ -139,11 +160,18 @@ class BaseDocAggregator<T extends Document> {
               },
             });
           }
+
+          const res = getAndRemoveReadyOrFilters();
+          if (res.length > 0) {
+            pipeline.push({ $match: { $and: res } });
+          }
         }
       });
 
-    if (postPathsFilter) {
-      pipeline.push({ $match: postPathsFilter });
+    if (postPathsFilter.length) {
+      pipeline.push({
+        $match: { $and: postPathsFilter.map((item) => item.or) },
+      });
     }
 
     if (dto.postFilter)
@@ -151,28 +179,75 @@ class BaseDocAggregator<T extends Document> {
         $match: dto.postFilter,
       });
 
+    const sortObj = { ...dto.sort, _id: 1 } || { _id: 1 };
+
     const rawData = await this.model.aggregate([
       ...pipeline,
-      { $sort: { ...dto.sort, _id: 1 } || { _id: 1 } },
+      { $sort: sortObj },
       ...(() => {
         const res = [];
         if (dto.limit) {
-          res.push({ $skip: dto.page * dto.limit });
+          if (!dto.isNext) res.push({ $skip: dto.page * dto.limit });
           res.push({ $limit: dto.limit });
         }
         return res;
       })(),
     ]);
-    const countPipeline = [...pipeline, { $count: "total" }];
 
-    let finalData = rawData;
+    pipeline.push({
+      $facet: {
+        data: [
+          { $sort: sortObj },
+          ...(() => {
+            const res = [];
+            if (dto.limit) {
+              if (!dto.isNext) res.push({ $skip: dto.page * dto.limit });
+              res.push({ $limit: dto.limit });
+            }
+            return res;
+          })(),
+        ],
+        total: [{ $count: "total" }],
+      },
+    });
+
+    const [{ data, total }] = await this.model.aggregate(pipeline);
+
+    let finalData = data;
+
+    const lastItem = finalData[finalData.length - 1];
+    let after = null;
+    if (lastItem) {
+      after = JSON.stringify({
+        $or: Object.entries(sortObj).map(([key, value], index, entries) => {
+          const res = {};
+          for (let i = 0; i < index; i++) {
+            const key = entries[i][0];
+            let val = lastItem[key];
+            console.log(key);
+            if (typeof val == "object" && "toJSON" in val) val = val.toJSON();
+            res[entries[i][0]] = val;
+          }
+          let val = lastItem[key];
+          if (typeof val == "object" && "toJSON" in val) val = val.toJSON();
+          res[key] = { [value == 1 ? "$gt" : "$lt"]: val };
+          return res;
+        }),
+      });
+    }
+
     return {
       data: finalData,
-      countQuery: countPipeline,
+      total: (dto.isNext ? dto.limit * dto.page : 0) + total[0]?.total ?? 0,
+      after,
     };
   }
 
-  protected paginate(query: TransformedSearchDto, count: number): Pagination {
+  protected paginate(
+    query: TransformedSearchDto,
+    count: number,
+    after: string
+  ): Pagination {
     return {
       total: count,
       page: query.page,
@@ -180,6 +255,7 @@ class BaseDocAggregator<T extends Document> {
       next:
         (query.page + 1) * query.limit >= count ? undefined : query.page + 1,
       prev: query.page == 0 ? undefined : query.page - 1,
+      after,
     };
   }
 }
@@ -207,15 +283,8 @@ export class PlainDocAggregator<
     const res = await this._aggregate(dto, pathOptions);
     const that = this;
     const result = {
-      pagination: null,
+      pagination: this.paginate(dto, res.total, res.after),
       data: res.data,
-      paginate: async function () {
-        this.pagination = that.paginate(
-          dto,
-          (await that.model.aggregate(res.countQuery))[0]?.total || 0
-        );
-        delete this.paginate;
-      },
     };
     return new SearchResult(result);
   }
@@ -259,14 +328,8 @@ export class DocAggregator<
     const res = await this._aggregate(dto, pathOptions);
     const that = this;
     const result = {
-      pagination: null,
+      pagination: this.paginate(dto, res.total, res.after),
       data: this.transformData(res.data),
-      paginate: async function () {
-        this.pagination = that.paginate(
-          dto,
-          (await that.model.aggregate(res.countQuery))[0]?.total || 0
-        );
-      },
     };
     return result;
   }

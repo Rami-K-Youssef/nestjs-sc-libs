@@ -1,8 +1,8 @@
-import { Injectable, PipeTransform } from '@nestjs/common';
+import { Injectable, PipeTransform } from "@nestjs/common";
 //import { FilterSortDto, FilterableParameters } from '../DTOs';
-import { FilterParser, SorterParser, ProjectionParser } from './parsers';
-import { ISearchableClass } from './definitions';
-import { SearchDto, TransformedSearchDto } from './dto/search.dto';
+import { FilterParser, SorterParser, ProjectionParser } from "./parsers";
+import { ISearchableClass } from "./definitions";
+import { SearchDto, TransformedSearchDto } from "./dto/search.dto";
 export type CollectionPropertyPaths = Record<string, ISearchableClass>;
 
 @Injectable()
@@ -17,13 +17,21 @@ export class SearchPipe implements PipeTransform {
     }
     if (value.postFilter)
       transformedResult.postFilter = filterParser.parse(value.postFilter);
+    if (value.after) {
+      const after = filterParser.parse(value.after);
+      transformedResult.isNext = true;
+      transformedResult.filter ??= {
+        ...(transformedResult.filter ?? {}),
+        ...after,
+      };
+    }
 
     transformedResult.sort = new SorterParser(this.searchClass).parse(
-      value.sort,
+      value.sort
     );
 
     transformedResult.pathProjection = new ProjectionParser(
-      this.searchClass,
+      this.searchClass
     ).parse(value);
 
     transformedResult.minified = value.minified;

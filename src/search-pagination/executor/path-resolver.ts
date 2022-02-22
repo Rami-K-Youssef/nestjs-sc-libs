@@ -21,7 +21,6 @@ const operators = [
 
 type ParsedKeyFilter = {
   originalKey: string;
-  isOperator: boolean;
   property: string;
   path: string;
   pathLength: number;
@@ -29,10 +28,10 @@ type ParsedKeyFilter = {
 };
 
 function handleFilter(filter: Record<string, any>) {
-  const operatorKeys = [];
+  let operatorKeys = [];
   const pathKeys = [] as ParsedKeyFilter[];
 
-  function runSubfilter(subfilter) {
+  function runSubfilter(subfilter, operatorKeys, pathKeys) {
     Object.keys(subfilter).forEach((key) => {
       if (key.startsWith("$")) {
         operatorKeys.push({ [key]: subfilter[key] });
@@ -40,7 +39,6 @@ function handleFilter(filter: Record<string, any>) {
         const path = key.split(".");
         pathKeys.push({
           originalKey: key,
-          isOperator: false,
           property: path[path.length - 1],
           path: path.slice(0, path.length - 1).join("."),
           pathLength: path.length - 1,
@@ -50,18 +48,44 @@ function handleFilter(filter: Record<string, any>) {
     });
   }
 
-  runSubfilter(filter);
+  runSubfilter(filter, operatorKeys, pathKeys);
   let itemIndex = null;
   while ((itemIndex = operatorKeys.findIndex((obj) => "$and" in obj)) > -1) {
     const $and = operatorKeys[itemIndex]["$and"];
     operatorKeys.splice(itemIndex, 1);
-    $and.forEach((item) => runSubfilter(item));
+    $and.forEach((item) => runSubfilter(item, operatorKeys, pathKeys));
   }
   pathKeys.forEach((item) => {
     if (item.path == "") item.path = "$ROOT$";
   });
   const groupedPathKeys = lodash.groupBy(pathKeys, "path"); // pathKeys.sort((a, b) => a.pathLength - b.pathLength);
-  return { groupedPathKeys, postFilter: operatorKeys };
+
+  operatorKeys = operatorKeys.filter((item) => "$or" in item);
+  operatorKeys = operatorKeys.map((opKey) => {
+    const $or = opKey["$or"];
+    let operatorKeys = [];
+    const pathKeys = [] as ParsedKeyFilter[];
+    $or.forEach((item) => runSubfilter(item, operatorKeys, pathKeys));
+    if (operatorKeys.length > 0)
+      return {
+        or: opKey,
+        paths: ["$$$"],
+      };
+    else {
+      return {
+        or: opKey,
+        paths: pathKeys
+          .map((item) => item.path)
+          .filter(
+            (item, index, arr) => item != "" && arr.indexOf(item) == index
+          ),
+      };
+    }
+  });
+  return {
+    groupedPathKeys,
+    postFilter: operatorKeys,
+  };
 }
 
 export function resolvePathFilters(
@@ -110,14 +134,14 @@ export function resolvePathFilters(
       }
     }
   );
-  // fix postfilter to include all paths
-  // const otherFilters = Object.values(groupedPathKeys)
-  //   .flatMap((item) => item)
-  //   .reduce<any[]>((acc, value: any) => {
-  //     acc.push({ [value.originalKey]: value.value });
-  //     return acc;
-  //   }, []) as [];
+
+  postFilter.forEach((orFilter: { or: any; paths: string[] }) => {
+    orFilter.paths = orFilter.paths.map((path) => {
+      match = sortedKeysDescending.find((key) => path.startsWith(key));
+      return path.substring(match.length + 1);
+    });
+  });
+
   const filters = [...postFilter /*...otherFilters*/];
-  if (filters.length == 0) return null;
-  else return { $and: filters };
+  return filters;
 }
