@@ -30,7 +30,7 @@ export class StorageProvider {
     );
   }
 
-  pipePrivateFile(res: Response, file: File) {
+  pipePrivateFile(res: Response, file: File, inline = false) {
     const name = file.overrideName ?? file.originalName ?? "file";
     if (file.url) {
       // online
@@ -38,10 +38,17 @@ export class StorageProvider {
       if (!fs.existsSync(file.path)) throw new FileNotFoundException();
       fs.createReadStream(file.path).pipe(res);
     }
-    res.setHeader("content-disposition", `attachment; filename=${name}`);
+    if (!inline)
+      res.setHeader("content-disposition", `attachment; filename=${name}`);
+    else res.setHeader("content-disposition", "inline");
   }
 
-  async zipPrivateFiles(res: Response, name: string, files: Array<File>) {
+  async zipPrivateFiles(
+    res: Response,
+    name: string,
+    files: Array<File>,
+    inline = false
+  ) {
     const archive = archiver("zip");
     return new Promise((resolve, reject) => {
       archive.on("error", function (err) {
@@ -61,7 +68,9 @@ export class StorageProvider {
       archive.pipe(res);
       archive.finalize();
       archive.on("close", resolve);
-      res.setHeader("content-disposition", `attachment; filename=${name}`);
+      if (!inline)
+        res.setHeader("content-disposition", `attachment; filename=${name}`);
+      else res.setHeader("content-disposition", "inline");
     });
   }
 }
