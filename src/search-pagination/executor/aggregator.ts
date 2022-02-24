@@ -237,7 +237,8 @@ class BaseDocAggregator<T extends Document> {
 
     return {
       data: finalData,
-      total: (dto.isNext ? dto.limit * dto.page : 0) + total[0]?.total ?? 0,
+      total:
+        ((dto.isNext ? dto.limit * dto.page : 0) ?? 0) + (total[0]?.total ?? 0),
       after,
     };
   }
