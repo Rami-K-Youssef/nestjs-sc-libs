@@ -5,6 +5,7 @@ import { InvalidAspectRatioException } from "../exceptions";
 import { StorageFunction } from "../storage";
 import { UploadedFile } from "..";
 import { Readable } from "stream";
+import { BaseStorageManager } from "../storage/storage-manager.base";
 
 export class ImagePipeline extends FilePipeline {
   protected _originalFileMetadata: sharp.Metadata;
@@ -37,9 +38,9 @@ export class ImagePipeline extends FilePipeline {
 async function validate(
   this: ImagePipeline,
   $0: string,
-  file: Express.Multer.File,
+  file: Partial<Express.Multer.File>,
   $2: Readable,
-  $3: StorageFunction,
+  $3: BaseStorageManager,
   $4: any,
   options: ImageValidationOptions
 ): Promise<UploadedFile> {
@@ -70,9 +71,9 @@ async function getMeta(this: ImagePipeline): Promise<sharp.Metadata> {
 async function createThumbnail(
   this: ImagePipeline,
   name: string,
-  file: Express.Multer.File,
+  file: Partial<Express.Multer.File>,
   $2: Readable,
-  storageCallback: StorageFunction,
+  storageManager: BaseStorageManager,
   user: any,
   options: ImageResizeOptions
 ) {
@@ -83,5 +84,11 @@ async function createThumbnail(
     options.height,
     resizeOptions
   );
-  return await storageCallback(file, name, stream, this.options, user);
+  return await storageManager.getStorageFunc()(
+    file,
+    name,
+    stream,
+    this.options,
+    user
+  );
 }

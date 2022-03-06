@@ -18,17 +18,19 @@ export interface UploadOptions {
 }
 
 export class UploadedFile {
-  fieldName: string;
+  fieldName?: string;
   fileName: string;
-  originalName: string;
-  size: number;
-  mimeType: string;
+  originalName?: string;
+  size?: number;
+  mimeType?: string;
   path: string;
   url?: string;
-  processedFiles: Record<string, UploadedFile>;
+  processedFiles?: Record<string, UploadedFile>;
   isPrivate: boolean;
   @Exclude()
-  delete: () => Promise<void>;
+  delete?: () => Promise<void>;
+  @Exclude()
+  onSuccess?: () => Promise<void>;
 
   constructor(data: UploadedFile) {
     Object.assign(this, data);

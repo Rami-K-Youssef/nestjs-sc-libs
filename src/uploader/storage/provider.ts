@@ -1,14 +1,14 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { StorageFunction } from ".";
+import { LocalStorageManager, StorageFunction } from ".";
 import { UploadedFile, UploadModuleOptions } from "..";
 import { UPLOAD_MODULE_OPTIONS } from "../consts";
 import { Response } from "express";
-import { generateLocalStorageFunc } from "./local-storage";
 
 import * as fs from "fs";
 import { FileNotFoundException } from "../exceptions";
 
 import archiver from "archiver";
+import { BaseStorageManager } from "./storage-manager.base";
 
 type File = {
   originalName?: string;
@@ -19,15 +19,17 @@ type File = {
 
 @Injectable()
 export class StorageProvider {
+  private readonly storageManager: BaseStorageManager;
+
   constructor(
     @Inject(UPLOAD_MODULE_OPTIONS) private options: UploadModuleOptions
-  ) {}
+  ) {
+    // TODO: Make it according to upload type (local/public)
+    this.storageManager = new LocalStorageManager(options);
+  }
 
-  getStorageFunc(): StorageFunction {
-    return generateLocalStorageFunc(
-      this.options.localStorageOptions.storageDir ?? "uploads",
-      this.options.localStorageOptions.publicServePath
-    );
+  getStorageManager() {
+    return this.storageManager;
   }
 
   getTempDirectory() {

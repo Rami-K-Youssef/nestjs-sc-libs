@@ -97,11 +97,11 @@ export function UploadInterceptor(
         Object.values(request.uploadedFiles)
           .flatMap((item) => item)
           .forEach((uploadedFile: UploadedFile) => {
-            uploadedFile.delete().catch(console.error);
+            if (uploadedFile.delete) uploadedFile.delete().catch(console.error);
             if (uploadedFile.processedFiles)
-              Object.values(uploadedFile.processedFiles).forEach((file) =>
-                file.delete().catch(console.error)
-              );
+              Object.values(uploadedFile.processedFiles).forEach((file) => {
+                if (file.delete) file.delete().catch(console.error);
+              });
           });
       }
 
@@ -117,8 +117,17 @@ export function UploadInterceptor(
       });
 
       return next.handle().pipe(
-        tap((res) => {
-          //console.log(request.uploadedFiles);
+        tap(async (res) => {
+          Object.values(request.uploadedFiles)
+            .flatMap((item) => item)
+            .forEach((uploadedFile: UploadedFile) => {
+              if (uploadedFile.onSuccess)
+                uploadedFile.onSuccess().catch(console.error);
+              if (uploadedFile.processedFiles)
+                Object.values(uploadedFile.processedFiles).forEach((file) => {
+                  if (file.onSuccess) file.onSuccess().catch(console.error);
+                });
+            });
         }),
         catchError((err) => {
           deleteFilesOnError();

@@ -6,6 +6,7 @@ import { StorageFunction } from "../storage/types";
 import pdf from "pdf-parse";
 import * as fs from "fs";
 import { InvalidPdfFileException } from "../exceptions";
+import { BaseStorageManager } from "../storage/storage-manager.base";
 
 export class PdfPipeline extends FilePipeline {
   persist(name?: string): PdfPipeline {
@@ -25,9 +26,9 @@ export class PdfPipeline extends FilePipeline {
 async function validate(
   this: PdfPipeline,
   $0: string,
-  file: Express.Multer.File,
+  file: Partial<Express.Multer.File>,
   $2: Readable,
-  $3: StorageFunction
+  $3: BaseStorageManager
 ): Promise<UploadedFile> {
   const data = fs.readFileSync(this._tempFilePath);
   try {

@@ -7,7 +7,7 @@ export type CustomStorageOptions = {
 };
 
 export type StorageFunction = (
-  file: Express.Multer.File,
+  file: Partial<Express.Multer.File>,
   name: string,
   readStream: Readable,
   options: SingleFieldUploadOptions,

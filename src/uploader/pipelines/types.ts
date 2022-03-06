@@ -2,13 +2,14 @@ import sharp from "sharp";
 import { Readable } from "stream";
 import { StorageFunction } from "../storage";
 import { UploadedFile } from "../interfaces";
+import { BaseStorageManager } from "../storage/storage-manager.base";
 
 export interface PipelineAction {
   method: (
     name: string,
-    file: Express.Multer.File,
+    file: Partial<Express.Multer.File>,
     stream: Readable,
-    storageCallback: StorageFunction,
+    storageManager: BaseStorageManager,
     user?: any,
     ...args: any[]
   ) => Promise<UploadedFile>;

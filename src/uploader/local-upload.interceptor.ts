@@ -3,15 +3,15 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
-} from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { StorageProvider } from './storage/provider';
+} from "@nestjs/common";
+import { Observable } from "rxjs";
+import { StorageProvider } from "./storage/provider";
 
 @Injectable()
 export abstract class BaseUploadInterceptor implements NestInterceptor {
   constructor(protected readonly storage: StorageProvider) {}
   abstract intercept(
     context: ExecutionContext,
-    next: CallHandler<any>,
+    next: CallHandler<any>
   ): Observable<any> | Promise<Observable<any>>;
 }

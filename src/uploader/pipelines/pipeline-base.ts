@@ -6,6 +6,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as uuid from "uuid";
 import { Readable } from "stream";
+import { BaseStorageManager } from "../storage/storage-manager.base";
 
 export class FilePipeline {
   protected _actions = [] as PipelineAction[];
@@ -15,24 +16,25 @@ export class FilePipeline {
   protected _tempDirectory: string;
 
   protected options: SingleFieldUploadOptions;
-  protected storageCallback: StorageFunction;
+  protected storageManager: BaseStorageManager;
 
   protected user?: any;
 
   public setOptions(
     options: SingleFieldUploadOptions,
-    storageCallback: StorageFunction,
+    storageManager: BaseStorageManager,
     tempDirectory: string,
     user?: any
   ) {
     this.options = options;
-    this.storageCallback = storageCallback;
+    this.storageManager = storageManager;
     this.user = user;
+    this._tempDirectory = tempDirectory;
   }
 
   protected async storeTemp(file: Express.Multer.File) {
     return new Promise<void>((resolve, reject) => {
-      const storagePath = "temp"; //should be configurable
+      const storagePath = this._tempDirectory;
       const filename = uuid.v4();
       this._tempFilePath = path.join(storagePath, filename);
       fs.mkdirSync(storagePath, { recursive: true });
@@ -45,9 +47,9 @@ export class FilePipeline {
 
   protected invokeAction(
     name: string,
-    file: Express.Multer.File,
+    file: Partial<Express.Multer.File>,
     stream: Readable,
-    storageCallback: StorageFunction,
+    storageManager: BaseStorageManager,
     action: PipelineAction
   ) {
     return action.method.call(
@@ -55,7 +57,7 @@ export class FilePipeline {
       name,
       file,
       stream,
-      storageCallback,
+      storageManager,
       this.user,
       ...(action.args ?? [])
     );
@@ -70,7 +72,7 @@ export class FilePipeline {
         file.filename,
         file,
         fs.createReadStream(this._tempFilePath),
-        this.storageCallback,
+        this.storageManager,
         this._mainFileAction
       );
       this._resultingFiles.push(result);
@@ -84,12 +86,13 @@ export class FilePipeline {
         const filename = fileName + `-${action.name}` + fileExtension;
         const subFile = await this.invokeAction(
           filename,
-          file,
+          {},
           action.skipStream ? null : fs.createReadStream(this._tempFilePath),
-          this.storageCallback,
+          this.storageManager,
           action
         );
         if (subFile) {
+          result.processedFiles ??= {} as Record<string, UploadedFile>;
           result.processedFiles[action.name] = subFile;
           this._resultingFiles.push(subFile);
         }
@@ -141,7 +144,7 @@ export class FilePipeline {
     newPipeline._mainFileAction = this._mainFileAction;
     newPipeline._tempDirectory = this._tempDirectory;
     newPipeline._actions = this._actions;
-    newPipeline.storageCallback = this.storageCallback;
+    newPipeline.storageManager = this.storageManager;
     newPipeline.options = this.options;
     newPipeline.user = this.user;
     return newPipeline;
@@ -151,10 +154,16 @@ export class FilePipeline {
 function persistFile(
   this: FilePipeline,
   name: string,
-  file: Express.Multer.File,
+  file: Partial<Express.Multer.File>,
   stream: Readable,
-  storageCallback: StorageFunction,
+  storageManager: BaseStorageManager,
   user?: any
 ) {
-  return storageCallback(file, name, stream, this.options, user);
+  return storageManager.getStorageFunc()(
+    file,
+    name,
+    stream,
+    this.options,
+    user
+  );
 }
