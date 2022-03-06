@@ -53,6 +53,7 @@ export interface AwsStorageOptions {}
 
 export interface UploadModuleOptions {
   storageType: UploadModuleStorageType;
+  tempDirectory?: string;
   localStorageOptions?: LocalStorageOptions;
   awsStorageOptions?: AwsStorageOptions;
 }

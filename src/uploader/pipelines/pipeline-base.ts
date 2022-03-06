@@ -12,6 +12,7 @@ export class FilePipeline {
   protected _mainFileAction: PipelineAction;
   protected _tempFilePath: string;
   protected _resultingFiles: UploadedFile[];
+  protected _tempDirectory: string;
 
   protected options: SingleFieldUploadOptions;
   protected storageCallback: StorageFunction;
@@ -21,6 +22,7 @@ export class FilePipeline {
   public setOptions(
     options: SingleFieldUploadOptions,
     storageCallback: StorageFunction,
+    tempDirectory: string,
     user?: any
   ) {
     this.options = options;
@@ -137,6 +139,7 @@ export class FilePipeline {
   public clone(): FilePipeline {
     const newPipeline = new (<any>this.constructor)();
     newPipeline._mainFileAction = this._mainFileAction;
+    newPipeline._tempDirectory = this._tempDirectory;
     newPipeline._actions = this._actions;
     newPipeline.storageCallback = this.storageCallback;
     newPipeline.options = this.options;

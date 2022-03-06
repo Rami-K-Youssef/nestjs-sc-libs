@@ -29,7 +29,12 @@ class CustomStorageEngine implements multer.StorageEngine {
       const options = this.opts.fileDescriptors[file.fieldname];
       const pipeline = options.pipeline?.clone() ?? new FilePipeline();
       const storageFunc = this.storageProvider.getStorageFunc();
-      pipeline.setOptions(options, storageFunc, this.user);
+      pipeline.setOptions(
+        options,
+        storageFunc,
+        this.storageProvider.getTempDirectory(),
+        this.user
+      );
       // make it read from module properties later
       pipeline
         .runFile(file)

@@ -1,10 +1,10 @@
-import { DynamicModule, Global, Inject, Module } from '@nestjs/common';
-import { UploadModuleOptions, UploadModuleStorageType } from '.';
-import { UPLOAD_MODULE_OPTIONS } from './consts';
-import { StorageProvider } from './storage/provider';
-import { ServeStaticModule } from './../serve-static/serve-static.module';
+import { DynamicModule, Global, Inject, Module } from "@nestjs/common";
+import { UploadModuleOptions, UploadModuleStorageType } from ".";
+import { UPLOAD_MODULE_OPTIONS } from "./consts";
+import { StorageProvider } from "./storage/provider";
+import { ServeStaticModule } from "./../serve-static/serve-static.module";
 
-import * as path from 'path';
+import * as path from "path";
 
 @Module({
   imports: [],
@@ -18,16 +18,21 @@ export class UploadModule {
   static forRoot(options: UploadModuleOptions): DynamicModule {
     if (options.storageType == UploadModuleStorageType.LOCAL) {
       if (!options.localStorageOptions)
-        throw new Error('Local Storage Options are missing');
+        throw new Error("Local Storage Options are missing");
+      if (!options.tempDirectory)
+        options.tempDirectory = path.join(
+          options.localStorageOptions.storageDir,
+          "temp"
+        );
       return {
         module: UploadModule,
         imports: [
           ServeStaticModule.forRoot({
             serveRoot: options.localStorageOptions.publicServePath.startsWith(
-              '/',
+              "/"
             )
               ? options.localStorageOptions.publicServePath
-              : '/' + options.localStorageOptions.publicServePath,
+              : "/" + options.localStorageOptions.publicServePath,
             // rootPath: path.join(
             //   options.localStorageOptions.storageDir,
             //   'public',
@@ -41,6 +46,6 @@ export class UploadModule {
           },
         ],
       };
-    } else throw new Error('AWS not yet supported');
+    } else throw new Error("AWS not yet supported");
   }
 }

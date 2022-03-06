@@ -30,6 +30,10 @@ export class StorageProvider {
     );
   }
 
+  getTempDirectory() {
+    return this.options.tempDirectory;
+  }
+
   pipePrivateFile(res: Response, file: File, inline = false) {
     const name = file.overrideName ?? file.originalName ?? "file";
     if (file.url) {
