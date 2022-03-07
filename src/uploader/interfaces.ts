@@ -30,7 +30,7 @@ export class UploadedFile {
   @Exclude()
   delete?: () => Promise<void>;
   @Exclude()
-  onSuccess?: () => Promise<void>;
+  onSuccess?: (param?: any) => Promise<void>;
 
   constructor(data: UploadedFile) {
     Object.assign(this, data);

@@ -1,5 +1,9 @@
 import { StorageFunction } from ".";
-import { SingleFieldUploadOptions, UploadModuleOptions } from "..";
+import {
+  SingleFieldUploadOptions,
+  UploadModuleOptions,
+  UploadModuleStorageType,
+} from "..";
 
 export type GeneratedFileAttributes = {
   url: string | null;
@@ -24,4 +28,5 @@ export abstract class BaseStorageManager {
     options: SingleFieldUploadOptions,
     user?: any
   ): GeneratedFileAttributes;
+  public abstract getStorageType(): UploadModuleStorageType;
 }

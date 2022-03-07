@@ -27,6 +27,7 @@ async function validate(
   this: PdfPipeline,
   $0: string,
   file: Partial<Express.Multer.File>,
+  $1: UploadedFile | null,
   $2: Readable,
   $3: BaseStorageManager
 ): Promise<UploadedFile> {

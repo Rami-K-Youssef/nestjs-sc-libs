@@ -118,14 +118,16 @@ export function UploadInterceptor(
 
       return next.handle().pipe(
         tap(async (res) => {
+          const param = this.storageProvider.getOnSuccessParam();
           Object.values(request.uploadedFiles)
             .flatMap((item) => item)
             .forEach((uploadedFile: UploadedFile) => {
               if (uploadedFile.onSuccess)
-                uploadedFile.onSuccess().catch(console.error);
+                uploadedFile.onSuccess(param).catch(console.error);
               if (uploadedFile.processedFiles)
                 Object.values(uploadedFile.processedFiles).forEach((file) => {
-                  if (file.onSuccess) file.onSuccess().catch(console.error);
+                  if (file.onSuccess)
+                    file.onSuccess(param).catch(console.error);
                 });
             });
         }),

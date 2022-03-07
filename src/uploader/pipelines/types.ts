@@ -8,6 +8,7 @@ export interface PipelineAction {
   method: (
     name: string,
     file: Partial<Express.Multer.File>,
+    parentFile: UploadedFile | null,
     stream: Readable,
     storageManager: BaseStorageManager,
     user?: any,

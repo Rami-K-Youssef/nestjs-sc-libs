@@ -1,5 +1,5 @@
 import { SingleFieldUploadOptions, UploadModuleOptions } from "..";
-import { UploadedFile } from "../interfaces";
+import { UploadedFile, UploadModuleStorageType } from "../interfaces";
 
 import * as path from "path";
 import * as fs from "fs";
@@ -17,6 +17,9 @@ export class LocalStorageManager extends BaseStorageManager {
 
   protected storageFunction: StorageFunction;
 
+  override getStorageType(): UploadModuleStorageType {
+    return UploadModuleStorageType.LOCAL;
+  }
   override getStorageFunc(): StorageFunction {
     if (!this.storageFunction)
       this.storageFunction = generateLocalStorageFunc(

@@ -20,12 +20,20 @@ type File = {
 @Injectable()
 export class StorageProvider {
   private readonly storageManager: BaseStorageManager;
+  private param: any;
 
   constructor(
     @Inject(UPLOAD_MODULE_OPTIONS) private options: UploadModuleOptions
   ) {
     // TODO: Make it according to upload type (local/public)
     this.storageManager = new LocalStorageManager(options);
+  }
+
+  getOnSuccessParam() {
+    return this.param;
+  }
+  setOnSuccessParam(param: any) {
+    this.param = param;
   }
 
   getStorageManager() {

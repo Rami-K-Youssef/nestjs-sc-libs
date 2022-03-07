@@ -48,6 +48,7 @@ export class FilePipeline {
   protected invokeAction(
     name: string,
     file: Partial<Express.Multer.File>,
+    parentFile: UploadedFile | null,
     stream: Readable,
     storageManager: BaseStorageManager,
     action: PipelineAction
@@ -56,6 +57,7 @@ export class FilePipeline {
       this,
       name,
       file,
+      parentFile,
       stream,
       storageManager,
       this.user,
@@ -68,14 +70,15 @@ export class FilePipeline {
       this._resultingFiles = [] as UploadedFile[];
       await this.storeTemp(file);
       if (!this._mainFileAction) this.persist();
-      const result = await this.invokeAction(
+      const parentFile = await this.invokeAction(
         file.filename,
         file,
+        null,
         fs.createReadStream(this._tempFilePath),
         this.storageManager,
         this._mainFileAction
       );
-      this._resultingFiles.push(result);
+      this._resultingFiles.push(parentFile);
 
       const lastDotIndex = file.filename.lastIndexOf(".");
       const fileName = file.filename.substring(0, lastDotIndex);
@@ -87,18 +90,19 @@ export class FilePipeline {
         const subFile = await this.invokeAction(
           filename,
           {},
+          parentFile,
           action.skipStream ? null : fs.createReadStream(this._tempFilePath),
           this.storageManager,
           action
         );
         if (subFile) {
-          result.processedFiles ??= {} as Record<string, UploadedFile>;
-          result.processedFiles[action.name] = subFile;
+          parentFile.processedFiles ??= {} as Record<string, UploadedFile>;
+          parentFile.processedFiles[action.name] = subFile;
           this._resultingFiles.push(subFile);
         }
       }
 
-      return result;
+      return parentFile;
     } catch (err) {
       await Promise.allSettled(
         this._resultingFiles.map(async (resultingFile) => {
@@ -155,6 +159,7 @@ function persistFile(
   this: FilePipeline,
   name: string,
   file: Partial<Express.Multer.File>,
+  $1: UploadedFile,
   stream: Readable,
   storageManager: BaseStorageManager,
   user?: any

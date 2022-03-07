@@ -24,6 +24,13 @@ export class UploadModule {
           options.localStorageOptions.storageDir,
           "temp"
         );
+      const providers = [
+        {
+          provide: UPLOAD_MODULE_OPTIONS,
+          useValue: options,
+        },
+      ] as any[];
+
       return {
         module: UploadModule,
         imports: [
@@ -33,18 +40,13 @@ export class UploadModule {
             )
               ? options.localStorageOptions.publicServePath
               : "/" + options.localStorageOptions.publicServePath,
-            // rootPath: path.join(
-            //   options.localStorageOptions.storageDir,
-            //   'public',
-            // ),
+            rootPath: path.join(
+              options.localStorageOptions.storageDir,
+              "public"
+            ),
           }),
         ],
-        providers: [
-          {
-            provide: UPLOAD_MODULE_OPTIONS,
-            useValue: options,
-          },
-        ],
+        providers,
       };
     } else throw new Error("AWS not yet supported");
   }
