@@ -1,6 +1,8 @@
+import { Readable } from "stream";
 import { StorageFunction } from ".";
 import {
   SingleFieldUploadOptions,
+  UploadedFile,
   UploadModuleOptions,
   UploadModuleStorageType,
 } from "..";
@@ -29,4 +31,18 @@ export abstract class BaseStorageManager {
     user?: any
   ): GeneratedFileAttributes;
   public abstract getStorageType(): UploadModuleStorageType;
+  public abstract store(
+    meta: GeneratedFileAttributes,
+    stream: Readable
+  ): Promise<UploadedFile>;
+
+  public abstract getFileBuffer(file: {
+    path?: string;
+    url?: string;
+  }): Promise<Buffer>;
+
+  public abstract deleteFile(file: {
+    path?: string;
+    url?: string;
+  }): Promise<void>;
 }

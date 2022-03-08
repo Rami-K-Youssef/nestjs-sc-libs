@@ -24,6 +24,7 @@ export type ImageValidationOptions = {
     min: number;
     max: number;
   };
+  requireAlpha?: boolean;
 };
 
 export type ImageResizeOptions = {

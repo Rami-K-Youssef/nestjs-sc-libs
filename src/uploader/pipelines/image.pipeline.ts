@@ -1,7 +1,10 @@
 import { FilePipeline } from "./pipeline-base";
 import sharp from "sharp";
 import { ImageResizeOptions, ImageValidationOptions } from ".";
-import { InvalidAspectRatioException } from "../exceptions";
+import {
+  ImageMissingAlphaChannelException,
+  InvalidAspectRatioException,
+} from "../exceptions";
 import { StorageFunction } from "../storage";
 import { UploadedFile } from "..";
 import { Readable } from "stream";
@@ -59,6 +62,8 @@ async function validate(
         originalName: file.originalname,
       });
   }
+  if (options.requireAlpha && !meta.hasAlpha)
+    throw new ImageMissingAlphaChannelException();
   return null;
 }
 

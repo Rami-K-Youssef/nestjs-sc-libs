@@ -22,11 +22,22 @@ export class LocalStorageManager extends BaseStorageManager {
   }
   override getStorageFunc(): StorageFunction {
     if (!this.storageFunction)
-      this.storageFunction = generateLocalStorageFunc(
-        this.options.localStorageOptions.storageDir ?? "uploads",
-        this.options.localStorageOptions.publicServePath
-      ).bind(this);
+      this.storageFunction = storeFileLocally.bind(this);
     return this.storageFunction;
+  }
+
+  override async getFileBuffer(file: {
+    path?: string;
+    url?: string;
+  }): Promise<Buffer> {
+    return fs.readFileSync(file.path);
+  }
+
+  override async deleteFile(file: {
+    path?: string;
+    url?: string;
+  }): Promise<void> {
+    fs.unlinkSync(file.path);
   }
 
   override getFileMetadata(
@@ -66,27 +77,14 @@ export class LocalStorageManager extends BaseStorageManager {
       finalDestination,
     };
   }
-}
 
-function generateLocalStorageFunc(storageDir: string, publicServePath: string) {
-  return async function storeFileLocally(
-    this: LocalStorageManager,
-    file: Partial<Express.Multer.File>,
-    name: string,
-    stream: Readable,
-    options: SingleFieldUploadOptions,
-    user?: any
+  override async store(
+    meta: GeneratedFileAttributes,
+    stream: Readable
   ): Promise<UploadedFile> {
     return new Promise<UploadedFile>((resolve, reject) => {
-      const meta = this.getFileMetadata(file, name, options, user);
-
-      fs.mkdirSync(meta.finalDestination, { recursive: true });
-
       const outStream = fs.createWriteStream(meta.path);
       stream.pipe(outStream);
-
-      delete meta.finalDestination;
-
       outStream.on("error", reject);
       outStream.on("finish", () => {
         resolve(
@@ -112,5 +110,19 @@ function generateLocalStorageFunc(storageDir: string, publicServePath: string) {
         );
       });
     });
-  };
+  }
+}
+
+async function storeFileLocally(
+  this: LocalStorageManager,
+  file: Partial<Express.Multer.File>,
+  name: string,
+  stream: Readable,
+  options: SingleFieldUploadOptions,
+  user?: any
+): Promise<UploadedFile> {
+  const meta = this.getFileMetadata(file, name, options, user);
+  fs.mkdirSync(meta.finalDestination, { recursive: true });
+  delete meta.finalDestination;
+  return await this.store(meta, stream);
 }
