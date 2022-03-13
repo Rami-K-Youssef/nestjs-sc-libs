@@ -89,7 +89,8 @@ class BaseDocAggregator<T extends Document> {
           );
           if (!schemaDetails)
             throw new Error(`${pathClass} is not registered as a schema`);
-          const collectionName = schemaDetails.options?.collection;
+          const collectionName =
+            value.collection ?? schemaDetails.options?.collection;
           if (!collectionName)
             throw new Error(`${pathClass} is not assigned a collection name`);
           const subpipeline = [{ $match: value.accessibility ?? {} }] as any[];
