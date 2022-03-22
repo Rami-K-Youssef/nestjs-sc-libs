@@ -39,7 +39,11 @@ export function checkPathAndReturnDescriptor(
         fullPath:
           (baseClass.prototype.__props[key].prefix
             ? baseClass.prototype.__props[key].prefix + "."
-            : "") + ogPathArr.join("."),
+            : "") +
+          ogPathArr.join(".") +
+          (baseClass.prototype.__props[key].postfix
+            ? "." + baseClass.prototype.__props[key].postfix
+            : ""),
       };
     } else if (baseClass.prototype.__props[key].pathClass && parts.length > 1) {
       const pathClass = baseClass.prototype.__props[key].pathClass();

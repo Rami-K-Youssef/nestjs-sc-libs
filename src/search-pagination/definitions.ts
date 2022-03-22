@@ -20,6 +20,7 @@ export interface CollectionPropertyOptions {
   readonly isArray?: boolean;
   readonly includeInMinifed?: boolean;
   readonly prefix?: string;
+  readonly postfix?: string;
 }
 
 export class BaseResponseDto {

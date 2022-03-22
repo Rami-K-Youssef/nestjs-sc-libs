@@ -23,6 +23,7 @@ export const SearchKey = (options?: CollectionPropertyOptions) => {
       includeInMinifed,
       pathClass: options?.pathClass,
       prefix: options?.prefix,
+      postfix: options?.postfix,
       isArray,
     };
   };

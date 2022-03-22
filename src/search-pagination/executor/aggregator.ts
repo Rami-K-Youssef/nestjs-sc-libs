@@ -182,19 +182,6 @@ class BaseDocAggregator<T extends Document> {
 
     const sortObj = { ...dto.sort, _id: 1 } || { _id: 1 };
 
-    const rawData = await this.model.aggregate([
-      ...pipeline,
-      { $sort: sortObj },
-      ...(() => {
-        const res = [];
-        if (dto.limit) {
-          if (!dto.isNext) res.push({ $skip: dto.page * dto.limit });
-          res.push({ $limit: dto.limit });
-        }
-        return res;
-      })(),
-    ]);
-
     pipeline.push({
       $facet: {
         data: [
