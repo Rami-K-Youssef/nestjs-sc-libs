@@ -33,9 +33,16 @@ export function CustomInterceptorIgnore() {
 const isObject = (obj) =>
   !(typeof obj === "undefined" || obj === null) && typeof obj === "object";
 
+export type CustomClassSerializerInterceptorPostProcessingFunction = (
+  request: any,
+  instance: any
+) => void;
 @Injectable()
 export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor {
-  constructor(protected reflector: Reflector) {
+  constructor(
+    protected reflector: Reflector,
+    protected postProcessFunction?: CustomClassSerializerInterceptorPostProcessingFunction
+  ) {
     super(reflector);
   }
 
@@ -56,7 +63,8 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
         "class_serializer:groupFn",
         context.getHandler()
       );
-      const user = context.switchToHttp().getRequest().user;
+      const request = context.switchToHttp().getRequest();
+      const user = request.user;
       const contextOptions = this.getContextOptions(context);
       const options = Object.assign(
         Object.assign({}, this.defaultOptions),
@@ -71,6 +79,7 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
               { ...options, ...transformOptions },
               dto,
               groupFn,
+              request,
               user
             )
           )
@@ -83,6 +92,7 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
     transformOptions: ClassTransformerOptionsExt,
     dto: typeof BaseResponseDto,
     groupFn: (item: any, user?: any) => string[],
+    request: any,
     user: any
   ): PlainLiteralObject | PlainLiteralObject[] {
     if (!isObject(response) || response instanceof StreamableFile) {
@@ -101,6 +111,9 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
               options
             ) as BaseResponseDto)
           : plainToInstance(dto, item, options);
+        if (this.postProcessFunction) {
+          this.postProcessFunction(request, instance);
+        }
         return instanceToPlain(instance, options);
       } else if (obj instanceof BaseResponseDto)
         return instanceToPlain(obj, transformOptions);
@@ -115,6 +128,9 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
               options
             ) as BaseResponseDto)
           : plainToInstance(dto, item, options);
+        if (this.postProcessFunction) {
+          this.postProcessFunction(request, instance);
+        }
         return instanceToPlain(instance, options);
       }
     };
