@@ -5,6 +5,7 @@ export * from "./mongoose-softdelete";
 export * from "./search-pagination";
 export * from "./backend-helpers";
 export * from "./uploader";
+export * from "./serve-static";
 
 import { MongooseSoftDeleteModel } from "./mongoose-softdelete";
 import {
