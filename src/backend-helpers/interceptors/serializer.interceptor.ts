@@ -115,9 +115,12 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
           this.postProcessFunction(request, instance);
         }
         return instanceToPlain(instance, options);
-      } else if (obj instanceof BaseResponseDto)
+      } else if (obj instanceof BaseResponseDto) {
+        if (this.postProcessFunction) {
+          this.postProcessFunction(request, obj);
+        }
         return instanceToPlain(obj, transformOptions);
-      else {
+      } else {
         const options = { ...(transformOptions ?? {}) };
         const item = obj;
         if (groupFn) options.groups = groupFn(item, user);
