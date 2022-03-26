@@ -138,7 +138,8 @@ export function resolvePathFilters(
   postFilter.forEach((orFilter: { or: any; paths: string[] }) => {
     orFilter.paths = orFilter.paths.map((path) => {
       match = sortedKeysDescending.find((key) => path.startsWith(key));
-      return path.substring(match.length + 1);
+      if (match) return path.substring(match.length + 1);
+      return path;
     });
   });
 

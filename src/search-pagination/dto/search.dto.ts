@@ -1,8 +1,9 @@
 import { Transform, TransformFnParams, Type } from "class-transformer";
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsInt, IsOptional, Min } from "class-validator";
+import { IsBoolean, IsInt, IsMongoId, IsOptional, Min } from "class-validator";
 import { BadRequestException } from "@nestjs/common";
 import { ISearchableClass } from "../definitions";
+import { Types } from "mongoose";
 
 export type SortableParameters = Record<string, -1 | 1>;
 export type FilterableParameters = Record<string, unknown>;
@@ -13,6 +14,7 @@ export class TransformedSearchDto {
   postFilter?: FilterableParameters;
   sort: SortableParameters;
   pathProjection?: Record<string, ProjectionParameters>;
+  afterId?: Types.ObjectId;
 
   page?: number;
   limit?: number;
@@ -34,12 +36,11 @@ export class SearchDto {
 
   @ApiPropertyOptional({
     type: String,
-    description:
-      "After query string, path filters apply at lookups, see documentation for its schema",
+    description: "After query string, the id of the last element received",
   })
-  @Transform((v: TransformFnParams) => filterQueryToObject(v.value))
   @IsOptional()
-  after?: FilterableParameters;
+  @IsMongoId()
+  after?: string;
 
   @ApiPropertyOptional({
     type: String,

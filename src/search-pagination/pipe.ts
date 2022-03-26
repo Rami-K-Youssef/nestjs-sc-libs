@@ -3,6 +3,7 @@ import { Injectable, PipeTransform } from "@nestjs/common";
 import { FilterParser, SorterParser, ProjectionParser } from "./parsers";
 import { ISearchableClass } from "./definitions";
 import { SearchDto, TransformedSearchDto } from "./dto/search.dto";
+import { Types } from "mongoose";
 export type CollectionPropertyPaths = Record<string, ISearchableClass>;
 
 @Injectable()
@@ -18,12 +19,8 @@ export class SearchPipe implements PipeTransform {
     if (value.postFilter)
       transformedResult.postFilter = filterParser.parse(value.postFilter);
     if (value.after) {
-      const after = filterParser.parse(value.after);
       transformedResult.isNext = true;
-      transformedResult.filter ??= {
-        ...(transformedResult.filter ?? {}),
-        ...after,
-      };
+      transformedResult.afterId = new Types.ObjectId(value.after);
     }
 
     transformedResult.sort = new SorterParser(this.searchClass).parse(
