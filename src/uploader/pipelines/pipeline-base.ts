@@ -32,7 +32,7 @@ export class FilePipeline {
     this._tempDirectory = tempDirectory;
   }
 
-  protected async storeTemp(file: Express.Multer.File) {
+  protected async storeTemp(file: Partial<Express.Multer.File>) {
     return new Promise<void>((resolve, reject) => {
       const storagePath = this._tempDirectory;
       const filename = uuid.v4();
@@ -65,7 +65,9 @@ export class FilePipeline {
     );
   }
 
-  public async runFile(file: Express.Multer.File): Promise<UploadedFile> {
+  public async runFile(
+    file: Partial<Express.Multer.File>
+  ): Promise<UploadedFile> {
     try {
       this._resultingFiles = [] as UploadedFile[];
       await this.storeTemp(file);
