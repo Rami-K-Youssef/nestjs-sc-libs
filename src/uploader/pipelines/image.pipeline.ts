@@ -1,14 +1,14 @@
 import { FilePipeline } from "./pipeline-base";
 import sharp from "sharp";
 import { ImageResizeOptions, ImageValidationOptions } from ".";
-import {
-  ImageMissingAlphaChannelException,
-  InvalidAspectRatioException,
-} from "../exceptions";
 import { StorageFunction } from "../storage";
 import { UploadedFile } from "..";
 import { Readable } from "stream";
 import { BaseStorageManager } from "../storage/storage-manager.base";
+import {
+  instantiateImageMissingAlphaChannelException,
+  instantiateInvalidAspectRatioException,
+} from "../exceptions";
 
 export class ImagePipeline extends FilePipeline {
   protected _originalFileMetadata: sharp.Metadata;
@@ -27,13 +27,19 @@ export class ImagePipeline extends FilePipeline {
     return this;
   }
 
-  thumb(name: string, options: ImageResizeOptions): ImagePipeline {
-    this._actions.push({
+  thumb(
+    name: string,
+    options: ImageResizeOptions,
+    isMain = false
+  ): ImagePipeline {
+    const action = {
       skipStream: true,
       name,
       method: createThumbnail,
       args: [options],
-    });
+    };
+    if (isMain) this._mainFileAction = action;
+    else this._actions.push(action);
     return this;
   }
 }
@@ -54,7 +60,7 @@ async function validate(
     const { width, height } = meta;
     const aspectRatio = width / height;
     if (aspectRatio < min || aspectRatio > max)
-      throw new InvalidAspectRatioException({
+      throw instantiateInvalidAspectRatioException({
         min: min,
         max: max,
         received: aspectRatio,
@@ -63,7 +69,7 @@ async function validate(
       });
   }
   if (options.requireAlpha && !meta.hasAlpha)
-    throw new ImageMissingAlphaChannelException();
+    throw instantiateImageMissingAlphaChannelException();
   return null;
 }
 

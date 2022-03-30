@@ -10,7 +10,10 @@ import { NextFunction, Request, Response } from "express";
 import multer from "multer";
 import { catchError, Observable, tap } from "rxjs";
 import { RequestWithUploadedFiles, UploadedFile } from ".";
-import { FileMissingException, InvalidMimeTypeException } from "./exceptions";
+import {
+  instantiateFileMissingException,
+  instantiateInvalidMimeTypeException,
+} from "./exceptions";
 import { FieldUploadOptions, UploadOptions } from "./interfaces";
 import { BaseUploadInterceptor } from "./local-upload.interceptor";
 import { generateStorageEngine } from "./storage";
@@ -27,7 +30,7 @@ function checkFileType(
     return cb(null, true);
   } else {
     cb(
-      new InvalidMimeTypeException({
+      instantiateInvalidMimeTypeException({
         mimeType: file.mimetype,
         allowedTypes: mimeRegexes,
         fieldName: file.fieldname,
@@ -112,7 +115,7 @@ export function UploadInterceptor(
             request.uploadedFiles[fieldName].length == 0)
         ) {
           deleteFilesOnError();
-          throw new FileMissingException({ fieldName });
+          throw instantiateFileMissingException({ fieldName });
         }
       });
 

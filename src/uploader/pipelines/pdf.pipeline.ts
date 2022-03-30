@@ -5,8 +5,8 @@ import { StorageFunction } from "../storage/types";
 
 import pdf from "pdf-parse";
 import * as fs from "fs";
-import { InvalidPdfFileException } from "../exceptions";
 import { BaseStorageManager } from "../storage/storage-manager.base";
+import { instantiatePdfFileException } from "../exceptions";
 
 export class PdfPipeline extends FilePipeline {
   persist(name?: string): PdfPipeline {
@@ -35,7 +35,7 @@ async function validate(
   try {
     await pdf(data);
   } catch {
-    throw new InvalidPdfFileException({ fieldName: file.fieldname });
+    throw instantiatePdfFileException({ fieldName: file.fieldname });
   }
   return null;
 }

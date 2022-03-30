@@ -5,10 +5,10 @@ import { UPLOAD_MODULE_OPTIONS } from "../consts";
 import { Response } from "express";
 
 import * as fs from "fs";
-import { FileNotFoundException } from "../exceptions";
 
 import archiver from "archiver";
 import { BaseStorageManager } from "./storage-manager.base";
+import { instantiateFileNotFoundException } from "../exceptions";
 
 type File = {
   originalName?: string;
@@ -49,7 +49,7 @@ export class StorageProvider {
     if (file.url) {
       // online
     } else {
-      if (!fs.existsSync(file.path)) throw new FileNotFoundException();
+      if (!fs.existsSync(file.path)) throw instantiateFileNotFoundException();
       fs.createReadStream(file.path).pipe(res);
     }
     if (!inline)

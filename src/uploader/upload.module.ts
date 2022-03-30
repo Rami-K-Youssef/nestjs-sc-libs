@@ -1,10 +1,18 @@
 import { DynamicModule, Global, Inject, Module } from "@nestjs/common";
-import { UploadModuleOptions, UploadModuleStorageType } from ".";
+import {
+  AllUploaderExceptions,
+  Localization,
+  UploadModuleOptions,
+  UploadModuleStorageType,
+} from ".";
 import { UPLOAD_MODULE_OPTIONS } from "./consts";
 import { StorageProvider } from "./storage/provider";
 import { ServeStaticModule } from "./../serve-static/serve-static.module";
 
 import * as path from "path";
+import { initializeExceptions } from "./exceptions";
+
+enum DefaultLocEnum {}
 
 @Module({
   imports: [],
@@ -15,7 +23,20 @@ import * as path from "path";
 export class UploadModule {
   constructor(@Inject(UPLOAD_MODULE_OPTIONS) private readonly options) {}
 
-  static forRoot(options: UploadModuleOptions): DynamicModule {
+  static forRoot<T extends number | string = DefaultLocEnum>(
+    options: UploadModuleOptions,
+    localization?: Record<AllUploaderExceptions, Localization<T>>
+  ): DynamicModule {
+    if (localization) initializeExceptions(localization);
+    else
+      initializeExceptions({
+        [AllUploaderExceptions.FileMissingException]: {},
+        [AllUploaderExceptions.FileNotFoundException]: {},
+        [AllUploaderExceptions.ImageMissingAlphaChannelException]: {},
+        [AllUploaderExceptions.InvalidAspectRatioException]: {},
+        [AllUploaderExceptions.InvalidMimeTypeException]: {},
+        [AllUploaderExceptions.InvalidPdfFileException]: {},
+      });
     if (options.storageType == UploadModuleStorageType.LOCAL) {
       if (!options.localStorageOptions)
         throw new Error("Local Storage Options are missing");
