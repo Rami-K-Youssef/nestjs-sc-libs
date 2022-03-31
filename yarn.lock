@@ -1537,10 +1537,14 @@
   "resolved" "https://registry.npmjs.org/cjs-module-lexer/-/cjs-module-lexer-1.2.2.tgz"
   "version" "1.2.2"
 
-"class-transformer@*", "class-transformer@^0.2.0 || ^0.3.0 || ^0.4.0", "class-transformer@^0.5.1":
-  "integrity" "sha512-SQa1Ws6hUbfC98vKGxZH3KFY0Y1lm5Zm0SY8XX9zbK7FJCyVEac3ATW0RIpwzW+oOfmHE5PMPufDG9hCfoEOMw=="
-  "resolved" "https://registry.npmjs.org/class-transformer/-/class-transformer-0.5.1.tgz"
+"class-transformer@*", "class-transformer@github:Rami-K-Youssef/class-transformer#pkg":
+  "resolved" "git+ssh://git@github.com/Rami-K-Youssef/class-transformer.git#c4ed96225b27805b4da6fd5779a7a2c38c50e55a"
   "version" "0.5.1"
+
+"class-transformer@^0.2.0 || ^0.3.0 || ^0.4.0":
+  "integrity" "sha512-ETWD/H2TbWbKEi7m9N4Km5+cw1hNcqJSxlSYhsLsNjQzWWiZIYA1zafxpK9PwVfaZ6AqR5rrjPVUBGESm5tQUA=="
+  "resolved" "https://registry.npmjs.org/class-transformer/-/class-transformer-0.4.0.tgz"
+  "version" "0.4.0"
 
 "class-utils@^0.3.5":
   "integrity" "sha512-qOhPa/Fj7s6TY8H8esGu5QNpMMQxz79h+urzrNYN6mn+9BnxlDGf5QZ+XeCDsxSjPqsSR56XOZOJmpeurnLMeg=="

@@ -41,7 +41,8 @@ export type CustomClassSerializerInterceptorPostProcessingFunction = (
 export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor {
   constructor(
     protected reflector: Reflector,
-    protected postProcessFunction?: CustomClassSerializerInterceptorPostProcessingFunction
+    protected postProcessFunction?: CustomClassSerializerInterceptorPostProcessingFunction,
+    protected globalData: Record<string, any> = {}
   ) {
     super(reflector);
   }
@@ -63,6 +64,9 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
         "class_serializer:groupFn",
         context.getHandler()
       );
+      const handlerData =
+        this.reflector.get("class_serializer:data", context.getHandler()) ?? {};
+
       const request = context.switchToHttp().getRequest();
       const user = request.user;
       const contextOptions = this.getContextOptions(context);
@@ -70,13 +74,21 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
         Object.assign({}, this.defaultOptions),
         contextOptions
       );
+
+      const data = {
+        ...this.globalData,
+        handlerData,
+        ...{ ...(user ?? {}) },
+      };
+
+      //options.
       return next
         .handle()
         .pipe(
           map((res) =>
             this.cSerialize(
               res,
-              { ...options, ...transformOptions },
+              { ...options, ...transformOptions, ...{ data } },
               dto,
               groupFn,
               request,

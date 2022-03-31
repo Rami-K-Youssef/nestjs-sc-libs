@@ -43,7 +43,7 @@ export function ResourceNotFoundException<T extends number | string>(
   resourceName: string,
   errMessage?: Localization<T>,
   code = `${resourceName}_NOT_FOUND`
-): typeof CodedException {
+): new () => CodedException<any> {
   class InternalNotFoundException extends CodedException<T> {
     errCode = code;
     errMessage = errMessage;
