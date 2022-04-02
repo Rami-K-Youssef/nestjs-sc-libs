@@ -89,7 +89,7 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
           const data = {
             ...this.globalData,
             handlerData,
-            ...{ ...(user ?? {}) },
+            user,
             requestData,
           };
           return this.cSerialize(
