@@ -18,6 +18,7 @@ import { SearchResult } from "./../../search-pagination/dto/pagination.dto";
 import { map } from "rxjs";
 import { ClassTransformerOptionsExt } from "../decoractors";
 import { plainToDiscrimnator } from "../../search-pagination/transforms";
+import { Request } from "express";
 
 const IgnoredPropertyName = Symbol("IgnoredPropertyName");
 
@@ -42,7 +43,10 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
   constructor(
     protected reflector: Reflector,
     protected postProcessFunction?: CustomClassSerializerInterceptorPostProcessingFunction,
-    protected globalData: Record<string, any> = {}
+    protected globalData: Record<string, any> = {},
+    protected extractRequestDataFunction?: (
+      request: Request
+    ) => Record<string, any>
   ) {
     super(reflector);
   }
@@ -68,34 +72,36 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
         this.reflector.get("class_serializer:data", context.getHandler()) ?? {};
 
       const request = context.switchToHttp().getRequest();
-      const user = request.user;
       const contextOptions = this.getContextOptions(context);
       const options = Object.assign(
         Object.assign({}, this.defaultOptions),
         contextOptions
       );
 
-      const data = {
-        ...this.globalData,
-        handlerData,
-        ...{ ...(user ?? {}) },
-      };
-
       //options.
-      return next
-        .handle()
-        .pipe(
-          map((res) =>
-            this.cSerialize(
-              res,
-              { ...options, ...transformOptions, ...{ data } },
-              dto,
-              groupFn,
-              request,
-              user
-            )
-          )
-        );
+      return next.handle().pipe(
+        map((res) => {
+          const requestData = this.extractRequestDataFunction
+            ? this.extractRequestDataFunction(request)
+            : {};
+          const user = request.user;
+
+          const data = {
+            ...this.globalData,
+            handlerData,
+            ...{ ...(user ?? {}) },
+            requestData,
+          };
+          return this.cSerialize(
+            res,
+            { ...options, ...transformOptions, ...{ data } },
+            dto,
+            groupFn,
+            request,
+            user
+          );
+        })
+      );
     }
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "@scandinavia/nestjs-libs",
-  "version": "1.8.84",
+  "version": "1.8.86",
   "description": "NestJS Utilities",
   "author": "Rami Kass Youssef",
   "license": "MIT",
