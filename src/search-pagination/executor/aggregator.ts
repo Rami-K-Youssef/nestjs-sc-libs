@@ -61,7 +61,7 @@ class BaseDocAggregator<T extends Document> {
           }),
         };
       }
-      dto.filter ??= {
+      dto.filter = {
         ...(dto.filter ?? {}),
         ...after,
       };
