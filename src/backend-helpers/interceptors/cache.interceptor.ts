@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Observable } from "rxjs";
+import { isRabbitContext } from "@golevelup/nestjs-rabbitmq";
 
 const CachePropertyName = Symbol("CacheThisApiSymbol");
 
@@ -29,6 +30,10 @@ export class CustomCacheInterceptor extends CacheInterceptor {
     context: ExecutionContext,
     next: CallHandler
   ): Promise<Observable<any>> {
+    const shouldSkip = isRabbitContext(context);
+    if (shouldSkip) {
+      return next.handle() as any;
+    }
     const doCache = context.getHandler()[CachePropertyName];
     if (!doCache) {
       return Promise.resolve(next.handle());

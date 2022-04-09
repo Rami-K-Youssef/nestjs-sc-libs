@@ -19,6 +19,7 @@ import { map } from "rxjs";
 import { ClassTransformerOptionsExt } from "../decoractors";
 import { plainToDiscrimnator } from "../../search-pagination/transforms";
 import { Request } from "express";
+import { isRabbitContext } from "@golevelup/nestjs-rabbitmq";
 
 const IgnoredPropertyName = Symbol("IgnoredPropertyName");
 
@@ -52,7 +53,8 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
   }
 
   intercept(context: ExecutionContext, next: CallHandler) {
-    const isIgnored = context.getHandler()[IgnoredPropertyName];
+    const isIgnored =
+      context.getHandler()[IgnoredPropertyName] || isRabbitContext(context);
     if (isIgnored) {
       return next.handle();
     } else {
