@@ -1,9 +1,9 @@
 import {
+  ClassTransformOptions,
+  DiscriminatorDescriptor,
+  plainToInstance,
   Transform,
   Type,
-  plainToInstance,
-  DiscriminatorDescriptor,
-  ClassTransformOptions,
 } from "class-transformer";
 import { Types } from "mongoose";
 
@@ -25,7 +25,9 @@ export const TransformIdOrDtoArray = (
   return (...args) => {
     Type(({ object, property }) => {
       const result =
-        object[property][0] instanceof Types.ObjectId ? String : myClass();
+        (object[property] ?? [])[0] instanceof Types.ObjectId
+          ? String
+          : myClass();
       return result;
     })(...args);
   };
