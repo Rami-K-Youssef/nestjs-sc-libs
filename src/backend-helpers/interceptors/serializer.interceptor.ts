@@ -1,3 +1,4 @@
+import { isRabbitContext } from "@golevelup/nestjs-rabbitmq";
 import {
   CallHandler,
   ClassSerializerInterceptor,
@@ -7,19 +8,14 @@ import {
   StreamableFile,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { BaseResponseDto } from "./../../search-pagination/definitions";
-import {
-  ClassTransformOptions,
-  instanceToPlain,
-  plainToInstance,
-} from "class-transformer";
-import { Document } from "mongoose";
-import { SearchResult } from "./../../search-pagination/dto/pagination.dto";
-import { map } from "rxjs";
-import { ClassTransformerOptionsExt } from "../decoractors";
-import { plainToDiscrimnator } from "../../search-pagination/transforms";
+import { instanceToPlain, plainToInstance } from "class-transformer";
 import { Request } from "express";
-import { isRabbitContext } from "@golevelup/nestjs-rabbitmq";
+import { Document } from "mongoose";
+import { map } from "rxjs";
+import { plainToDiscrimnator } from "../../search-pagination/transforms";
+import { ClassTransformerOptionsExt } from "../decoractors";
+import { BaseResponseDto } from "./../../search-pagination/definitions";
+import { SearchResult } from "./../../search-pagination/dto/pagination.dto";
 
 const IgnoredPropertyName = Symbol("IgnoredPropertyName");
 
@@ -131,12 +127,15 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
               options
             ) as BaseResponseDto)
           : plainToInstance(dto, item, options);
-        if (this.postProcessFunction) {
+        if (this.postProcessFunction && !options.skipPostProcessing) {
           this.postProcessFunction(request, instance);
         }
         return instanceToPlain(instance, options);
       } else if (obj instanceof BaseResponseDto) {
-        if (this.postProcessFunction) {
+        if (
+          this.postProcessFunction &&
+          !(transformOptions ?? {}).skipPostProcessing
+        ) {
           this.postProcessFunction(request, obj);
         }
         return instanceToPlain(obj, transformOptions);
@@ -151,7 +150,7 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
               options
             ) as BaseResponseDto)
           : plainToInstance(dto, item, options);
-        if (this.postProcessFunction) {
+        if (this.postProcessFunction && !options.skipPostProcessing) {
           this.postProcessFunction(request, instance);
         }
         return instanceToPlain(instance, options);
