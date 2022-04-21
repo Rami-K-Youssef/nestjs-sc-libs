@@ -4,16 +4,16 @@ import {
   Module,
   OnModuleInit,
   Provider,
-} from '@nestjs/common';
-import { HttpAdapterHost } from '@nestjs/core';
+} from "@nestjs/common";
+import { HttpAdapterHost } from "@nestjs/core";
 import {
   ServeStaticModuleAsyncOptions,
   ServeStaticModuleOptions,
   ServeStaticModuleOptionsFactory,
-} from './interfaces/serve-static-options.interface';
-import { AbstractLoader } from './loaders/abstract.loader';
-import { SERVE_STATIC_MODULE_OPTIONS } from './serve-static.constants';
-import { serveStaticProviders } from './serve-static.providers';
+} from "./interfaces/serve-static-options.interface";
+import { AbstractLoader } from "./loaders/abstract.loader";
+import { SERVE_STATIC_MODULE_OPTIONS } from "./serve-static.constants";
+import { serveStaticProviders } from "./serve-static.providers";
 
 @Module({
   providers: [...serveStaticProviders],
@@ -23,7 +23,7 @@ export class ServeStaticModule implements OnModuleInit {
     @Inject(SERVE_STATIC_MODULE_OPTIONS)
     private readonly ngOptions: ServeStaticModuleOptions[],
     private readonly loader: AbstractLoader,
-    private readonly httpAdapterHost: HttpAdapterHost,
+    private readonly httpAdapterHost: HttpAdapterHost
   ) {}
 
   public static forRoot(...options: ServeStaticModuleOptions[]): DynamicModule {
@@ -39,7 +39,7 @@ export class ServeStaticModule implements OnModuleInit {
   }
 
   public static forRootAsync(
-    options: ServeStaticModuleAsyncOptions,
+    options: ServeStaticModuleAsyncOptions
   ): DynamicModule {
     return {
       module: ServeStaticModule,
@@ -53,7 +53,7 @@ export class ServeStaticModule implements OnModuleInit {
   }
 
   private static createAsyncProviders(
-    options: ServeStaticModuleAsyncOptions,
+    options: ServeStaticModuleAsyncOptions
   ): Provider[] {
     if (options.useExisting || options.useFactory) {
       return [this.createAsyncOptionsProvider(options)];
@@ -68,7 +68,7 @@ export class ServeStaticModule implements OnModuleInit {
   }
 
   private static createAsyncOptionsProvider(
-    options: ServeStaticModuleAsyncOptions,
+    options: ServeStaticModuleAsyncOptions
   ): Provider {
     if (options.useFactory) {
       return {

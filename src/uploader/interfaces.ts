@@ -51,7 +51,13 @@ export interface LocalStorageOptions {
   publicServePath: string;
 }
 
-export interface AwsStorageOptions {}
+export interface AwsStorageOptions {
+  privateBucketName?: string;
+  publicBucketName: string;
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+}
 
 export interface UploadModuleOptions {
   storageType: UploadModuleStorageType;

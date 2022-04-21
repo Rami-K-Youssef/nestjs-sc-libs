@@ -1,4 +1,11 @@
-import { DynamicModule, Global, Inject, Module } from "@nestjs/common";
+import {
+  DynamicModule,
+  Global,
+  Inject,
+  Module,
+  ModuleMetadata,
+  Provider,
+} from "@nestjs/common";
 import {
   AllUploaderExceptions,
   Localization,
@@ -14,6 +21,13 @@ import { initializeExceptions } from "./exceptions";
 
 enum DefaultLocEnum {}
 
+export interface UploadModuleAsyncOptions {
+  useFactory: (
+    ...args: any[]
+  ) => Promise<UploadModuleOptions> | UploadModuleOptions;
+  inject?: any[];
+}
+
 @Module({
   imports: [],
   providers: [StorageProvider],
@@ -23,10 +37,9 @@ enum DefaultLocEnum {}
 export class UploadModule {
   constructor(@Inject(UPLOAD_MODULE_OPTIONS) private readonly options) {}
 
-  static forRoot<T extends number | string = DefaultLocEnum>(
-    options: UploadModuleOptions,
-    localization?: Record<AllUploaderExceptions, Localization<T>>
-  ): DynamicModule {
+  private static _localizeExceptions<
+    T extends number | string = DefaultLocEnum
+  >(localization?: Record<AllUploaderExceptions, Localization<T>>) {
     if (localization) initializeExceptions(localization);
     else
       initializeExceptions({
@@ -37,38 +50,78 @@ export class UploadModule {
         [AllUploaderExceptions.InvalidMimeTypeException]: {},
         [AllUploaderExceptions.InvalidPdfFileException]: {},
       });
-    if (options.storageType == UploadModuleStorageType.LOCAL) {
-      if (!options.localStorageOptions)
+  }
+
+  static forRoot<T extends number | string = DefaultLocEnum>(
+    options: UploadModuleOptions,
+    localization?: Record<AllUploaderExceptions, Localization<T>>
+  ): DynamicModule {
+    this._localizeExceptions(localization);
+    const optionsProvider = {
+      provide: UPLOAD_MODULE_OPTIONS,
+      useValue: options,
+    };
+    return {
+      module: UploadModule,
+      imports: [this.initServeStaticModule(optionsProvider)],
+      providers: [optionsProvider],
+    };
+  }
+
+  onModuleInit() {
+    if (this.options.storageType == UploadModuleStorageType.LOCAL) {
+      if (!this.options.localStorageOptions)
         throw new Error("Local Storage Options are missing");
-      if (!options.tempDirectory)
-        options.tempDirectory = path.join(
-          options.localStorageOptions.storageDir,
+      if (!this.options.tempDirectory)
+        this.options.tempDirectory = path.join(
+          this.options?.localStorageOptions?.storageDir,
           "temp"
         );
-      const providers = [
-        {
-          provide: UPLOAD_MODULE_OPTIONS,
-          useValue: options,
-        },
-      ] as any[];
+    } else if (this.options.storageType == UploadModuleStorageType.AWS) {
+      if (!this.options.tempDirectory) this.options.tempDirectory = "temp";
+      if (!this.options.awsStorageOptions)
+        throw new Error("AWS Storage Options are missing");
+      const aws = this.options.awsStorageOptions;
+      if (!aws.privateBucketName) aws.privateBucketName = aws.publicBucketName;
+    } else throw new Error("not yet supported");
+  }
 
-      return {
-        module: UploadModule,
-        imports: [
-          ServeStaticModule.forRoot({
-            serveRoot: options.localStorageOptions.publicServePath.startsWith(
-              "/"
-            )
-              ? options.localStorageOptions.publicServePath
-              : "/" + options.localStorageOptions.publicServePath,
-            rootPath: path.join(
-              options.localStorageOptions.storageDir,
-              "public"
-            ),
-          }),
-        ],
-        providers,
-      };
-    } else throw new Error("AWS not yet supported");
+  static forRootAsync<T extends number | string = DefaultLocEnum>(
+    options: UploadModuleAsyncOptions,
+    localization?: Record<AllUploaderExceptions, Localization<T>>
+  ) {
+    this._localizeExceptions(localization);
+    const optionsProvider = {
+      provide: UPLOAD_MODULE_OPTIONS,
+      useFactory: options.useFactory,
+      inject: options.inject,
+    };
+    return {
+      module: UploadModule,
+      imports: [this.initServeStaticModule(optionsProvider)],
+      providers: [optionsProvider],
+    };
+  }
+
+  private static initServeStaticModule(optionsProvider: Provider) {
+    return ServeStaticModule.forRootAsync({
+      extraProviders: [optionsProvider],
+      inject: [UPLOAD_MODULE_OPTIONS],
+      useFactory: (options: UploadModuleOptions) =>
+        options.localStorageOptions
+          ? [
+              {
+                serveRoot:
+                  options.localStorageOptions.publicServePath.startsWith("/")
+                    ? options.localStorageOptions.publicServePath
+                    : "/" + options.localStorageOptions.publicServePath,
+                rootPath: path.join(
+                  options.localStorageOptions.storageDir,
+                  "public"
+                ),
+              },
+            ]
+          : [],
+    });
   }
 }

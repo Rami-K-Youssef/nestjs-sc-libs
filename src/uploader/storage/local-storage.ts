@@ -3,14 +3,49 @@ import { UploadedFile, UploadModuleStorageType } from "../interfaces";
 
 import * as path from "path";
 import * as fs from "fs";
-import { Readable } from "stream";
+import { Readable, Writable } from "stream";
 import {
   BaseStorageManager,
+  DownloadableFile,
   GeneratedFileAttributes,
 } from "./storage-manager.base";
 import { StorageFunction } from "./types";
+import { instantiateFileNotFoundException } from "../exceptions";
+
+import archiver from "archiver";
 
 export class LocalStorageManager extends BaseStorageManager {
+  public zipMultipleFiles(
+    files: DownloadableFile[],
+    name: string,
+    writable: Writable
+  ): Promise<void> {
+    const archive = archiver("zip");
+    return new Promise((resolve, reject) => {
+      archive.on("error", function (err) {
+        reject(err);
+      });
+
+      files.forEach((fl) => {
+        if (fs.existsSync(fl.path)) {
+          archive.append;
+          archive.file(fl.path, { name: fl.overrideName ?? fl.originalName });
+        }
+      });
+
+      archive.pipe(writable);
+      archive.finalize();
+      archive.on("close", resolve);
+    });
+  }
+
+  public async pipeFile(
+    file: DownloadableFile,
+    writable: Writable
+  ): Promise<void> {
+    if (!fs.existsSync(file.path)) throw instantiateFileNotFoundException();
+    fs.createReadStream(file.path).pipe(writable);
+  }
   constructor(protected readonly options: UploadModuleOptions) {
     super(options);
   }
@@ -26,17 +61,11 @@ export class LocalStorageManager extends BaseStorageManager {
     return this.storageFunction;
   }
 
-  override async getFileBuffer(file: {
-    path?: string;
-    url?: string;
-  }): Promise<Buffer> {
+  override async getFileBuffer(file: DownloadableFile): Promise<Buffer> {
     return fs.readFileSync(file.path);
   }
 
-  override async deleteFile(file: {
-    path?: string;
-    url?: string;
-  }): Promise<void> {
+  override async deleteFile(file: DownloadableFile): Promise<void> {
     fs.unlinkSync(file.path);
   }
 

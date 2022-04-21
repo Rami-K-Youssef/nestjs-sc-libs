@@ -1,4 +1,4 @@
-import { Readable } from "stream";
+import { Readable, Writable } from "stream";
 import { StorageFunction } from ".";
 import {
   SingleFieldUploadOptions,
@@ -20,6 +20,14 @@ export type GeneratedFileAttributes = {
   finalDestination?: string;
 };
 
+export type DownloadableFile = {
+  originalName?: string;
+  overrideName?: string;
+  path: string;
+  url?: string;
+  isPrivate: boolean;
+};
+
 export abstract class BaseStorageManager {
   constructor(protected readonly options: UploadModuleOptions) {}
 
@@ -36,13 +44,18 @@ export abstract class BaseStorageManager {
     stream: Readable
   ): Promise<UploadedFile>;
 
-  public abstract getFileBuffer(file: {
-    path?: string;
-    url?: string;
-  }): Promise<Buffer>;
+  public abstract getFileBuffer(file: DownloadableFile): Promise<Buffer>;
 
-  public abstract deleteFile(file: {
-    path?: string;
-    url?: string;
-  }): Promise<void>;
+  public abstract deleteFile(file: DownloadableFile): Promise<void>;
+
+  public abstract pipeFile(
+    file: DownloadableFile,
+    writable: Writable
+  ): Promise<void>;
+
+  public abstract zipMultipleFiles(
+    files: Array<DownloadableFile>,
+    name: string,
+    writable: Writable
+  ): Promise<void>;
 }

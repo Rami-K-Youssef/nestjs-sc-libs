@@ -1,21 +1,12 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { LocalStorageManager, StorageFunction } from ".";
-import { UploadedFile, UploadModuleOptions } from "..";
+import { LocalStorageManager } from ".";
+import { UploadModuleOptions } from "..";
 import { UPLOAD_MODULE_OPTIONS } from "../consts";
 import { Response } from "express";
 
-import * as fs from "fs";
-
-import archiver from "archiver";
-import { BaseStorageManager } from "./storage-manager.base";
-import { instantiateFileNotFoundException } from "../exceptions";
-
-type File = {
-  originalName?: string;
-  overrideName?: string;
-  path?: string;
-  url?: string;
-};
+import { BaseStorageManager, DownloadableFile } from "./storage-manager.base";
+import { UploadModuleStorageType } from "../interfaces";
+import { AwsStorageManager } from "./aws-storage";
 
 @Injectable()
 export class StorageProvider {
@@ -25,8 +16,16 @@ export class StorageProvider {
   constructor(
     @Inject(UPLOAD_MODULE_OPTIONS) private options: UploadModuleOptions
   ) {
-    // TODO: Make it according to upload type (local/public)
-    this.storageManager = new LocalStorageManager(options);
+    switch (options.storageType) {
+      case UploadModuleStorageType.LOCAL:
+        this.storageManager = new LocalStorageManager(options);
+        break;
+      case UploadModuleStorageType.AWS:
+        this.storageManager = new AwsStorageManager(options);
+        break;
+      default:
+        throw new Error("storage type not supported");
+    }
   }
 
   getOnSuccessParam() {
@@ -44,47 +43,23 @@ export class StorageProvider {
     return this.options.tempDirectory;
   }
 
-  pipePrivateFile(res: Response, file: File, inline = false) {
+  async pipeFile(res: Response, file: DownloadableFile, inline = false) {
     const name = file.overrideName ?? file.originalName ?? "file";
-    if (file.url) {
-      // online
-    } else {
-      if (!fs.existsSync(file.path)) throw instantiateFileNotFoundException();
-      fs.createReadStream(file.path).pipe(res);
-    }
     if (!inline)
       res.setHeader("content-disposition", `attachment; filename=${name}`);
     else res.setHeader("content-disposition", "inline");
+    await this.storageManager.pipeFile(file, res);
   }
 
-  async zipPrivateFiles(
+  async zipAndPipeFiles(
     res: Response,
     name: string,
-    files: Array<File>,
+    files: Array<DownloadableFile>,
     inline = false
   ) {
-    const archive = archiver("zip");
-    return new Promise((resolve, reject) => {
-      archive.on("error", function (err) {
-        reject(err);
-      });
-
-      files.forEach((fl) => {
-        if (fl.url) {
-          // online
-        } else {
-          if (fs.existsSync(fl.path)) {
-            archive.file(fl.path, { name: fl.overrideName ?? fl.originalName });
-          }
-        }
-      });
-
-      archive.pipe(res);
-      archive.finalize();
-      archive.on("close", resolve);
-      if (!inline)
-        res.setHeader("content-disposition", `attachment; filename=${name}`);
-      else res.setHeader("content-disposition", "inline");
-    });
+    if (!inline)
+      res.setHeader("content-disposition", `attachment; filename=${name}`);
+    else res.setHeader("content-disposition", "inline");
+    await this.storageManager.zipMultipleFiles(files, name, res);
   }
 }
