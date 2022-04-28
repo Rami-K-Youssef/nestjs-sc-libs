@@ -58,7 +58,8 @@ export class AwsStorageManager extends BaseStorageManager {
     file: Partial<Express.Multer.File>,
     name: string,
     options: SingleFieldUploadOptions,
-    user?: any
+    user?: any,
+    info?: Record<string, string>
   ): GeneratedFileAttributes {
     const bucket = this.getBucket(options.isPrivate);
 
@@ -84,6 +85,7 @@ export class AwsStorageManager extends BaseStorageManager {
       path: filepath,
       ...optionals,
       finalDestination,
+      info,
     };
   }
   public getStorageType(): UploadModuleStorageType {
@@ -180,7 +182,6 @@ export class AwsStorageManager extends BaseStorageManager {
   }
   public zipMultipleFiles(
     files: DownloadableFile[],
-    name: string,
     writable: Writable
   ): Promise<void> {
     const archive = archiver("zip");
@@ -208,9 +209,10 @@ async function storeFileOnCloud(
   name: string,
   stream: Readable,
   options: SingleFieldUploadOptions,
-  user?: any
+  user?: any,
+  info?: Record<string, string>
 ) {
-  const meta = this.getFileMetadata(file, name, options, user);
+  const meta = this.getFileMetadata(file, name, options, user, info);
   delete meta.finalDestination;
   return await this.store(meta, stream);
 }

@@ -30,13 +30,15 @@ export class ImagePipeline extends FilePipeline {
   thumb(
     name: string,
     options: ImageResizeOptions,
+    quality = 80,
     isMain = false
   ): ImagePipeline {
     const action = {
       skipStream: true,
       name,
       method: createThumbnail,
-      args: [options],
+      args: [options, quality],
+      extension: ".webp",
     };
     if (isMain) this._mainFileAction = action;
     else this._actions.push(action);
@@ -88,15 +90,14 @@ async function createThumbnail(
   $2: Readable,
   storageManager: BaseStorageManager,
   user: any,
-  options: ImageResizeOptions
+  options: ImageResizeOptions,
+  quality: number
 ) {
   const resizeOptions = options.options ?? ({} as sharp.ResizeOptions);
   if (!resizeOptions.fit) resizeOptions.fit = "cover";
-  const stream = sharp(this._tempFilePath).resize(
-    options.width,
-    options.height,
-    resizeOptions
-  );
+  const stream = sharp(this._tempFilePath)
+    .resize(options.width, options.height, resizeOptions)
+    .webp({ quality });
   return await storageManager.getStorageFunc()(
     file,
     name,

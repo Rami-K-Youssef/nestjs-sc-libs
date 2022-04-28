@@ -17,6 +17,7 @@ export interface PipelineAction {
   args?: any[];
   name: string;
   skipStream?: boolean;
+  extension?: string;
 }
 
 export type ImageValidationOptions = {

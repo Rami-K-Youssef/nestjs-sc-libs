@@ -72,8 +72,14 @@ export class FilePipeline {
       this._resultingFiles = [] as UploadedFile[];
       await this.storeTemp(file);
       if (!this._mainFileAction) this.persist();
+      let flName = file.filename;
+      const lastIndexOfDot = flName.lastIndexOf(".");
+      const ext = this._mainFileAction.extension ?? "";
+      if (lastIndexOfDot > 0 && ext) {
+        flName = flName.substring(0, lastIndexOfDot);
+      }
       const parentFile = await this.invokeAction(
-        file.filename,
+        flName + ext,
         file,
         null,
         fs.createReadStream(this._tempFilePath),
@@ -88,7 +94,8 @@ export class FilePipeline {
         lastDotIndex == -1 ? "" : file.filename.substring(lastDotIndex);
 
       for (const action of this._actions) {
-        const filename = fileName + `-${action.name}` + fileExtension;
+        const filename =
+          fileName + `-${action.name}` + (action.extension ?? fileExtension);
         const subFile = await this.invokeAction(
           filename,
           {},

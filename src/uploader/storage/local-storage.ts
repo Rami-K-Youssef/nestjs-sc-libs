@@ -17,7 +17,6 @@ import archiver from "archiver";
 export class LocalStorageManager extends BaseStorageManager {
   public zipMultipleFiles(
     files: DownloadableFile[],
-    name: string,
     writable: Writable
   ): Promise<void> {
     const archive = archiver("zip");
@@ -73,7 +72,8 @@ export class LocalStorageManager extends BaseStorageManager {
     file: Partial<Express.Multer.File>,
     name: string,
     options: SingleFieldUploadOptions,
-    user?: any
+    user?: any,
+    info?: Record<string, string>
   ): GeneratedFileAttributes {
     const storageDir = this.options.localStorageOptions.storageDir ?? "uploads";
     const publicServePath = this.options.localStorageOptions.publicServePath;
@@ -104,6 +104,7 @@ export class LocalStorageManager extends BaseStorageManager {
       path: filepath,
       ...optionals,
       finalDestination,
+      info,
     };
   }
 
@@ -148,9 +149,10 @@ async function storeFileLocally(
   name: string,
   stream: Readable,
   options: SingleFieldUploadOptions,
-  user?: any
+  user?: any,
+  info?: Record<string, string>
 ): Promise<UploadedFile> {
-  const meta = this.getFileMetadata(file, name, options, user);
+  const meta = this.getFileMetadata(file, name, options, user, info);
   fs.mkdirSync(meta.finalDestination, { recursive: true });
   delete meta.finalDestination;
   return await this.store(meta, stream);

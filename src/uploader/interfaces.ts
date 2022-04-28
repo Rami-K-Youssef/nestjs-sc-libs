@@ -25,6 +25,7 @@ export class UploadedFile {
   mimeType?: string;
   path: string;
   url?: string;
+  info?: Record<string, string>;
   processedFiles?: Record<string, UploadedFile>;
   isPrivate: boolean;
   @Exclude()

@@ -55,7 +55,6 @@ export abstract class BaseStorageManager {
 
   public abstract zipMultipleFiles(
     files: Array<DownloadableFile>,
-    name: string,
     writable: Writable
   ): Promise<void>;
 }

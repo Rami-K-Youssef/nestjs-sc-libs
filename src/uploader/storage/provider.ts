@@ -60,6 +60,6 @@ export class StorageProvider {
     if (!inline)
       res.setHeader("content-disposition", `attachment; filename=${name}`);
     else res.setHeader("content-disposition", "inline");
-    await this.storageManager.zipMultipleFiles(files, name, res);
+    await this.storageManager.zipMultipleFiles(files, res);
   }
 }
