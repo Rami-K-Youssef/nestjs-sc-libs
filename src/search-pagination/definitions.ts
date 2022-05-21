@@ -65,7 +65,7 @@ export type PathOptions = Record<
   string,
   {
     accessibility?: Record<string, any>;
-    projection?: string[];
+    projection?: any;
     flags?: number;
     deleted?: boolean;
     joinField?: string;

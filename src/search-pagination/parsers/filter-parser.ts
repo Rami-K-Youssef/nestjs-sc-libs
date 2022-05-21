@@ -66,7 +66,7 @@ export class FilterParser {
       }
       return result;
     } else {
-      if (currentPropertyDescriptor?.isId) {
+      if (currentPropertyDescriptor?.isId && typeof value == "string") {
         if (!Types.ObjectId.isValid(value))
           throw new BadRequestException("Malformed Object ID");
         return new Types.ObjectId(value);

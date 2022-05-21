@@ -98,10 +98,7 @@ class BaseDocAggregator<T extends Document> {
 
     if (pathOptions.$ROOT$.projection) {
       pipeline.push({
-        $project: pathOptions.$ROOT$.projection.reduce((acc, val) => {
-          acc[val] = 1;
-          return acc;
-        }, {}),
+        $project: pathOptions.$ROOT$.projection,
       });
     } else if (dto?.pathProjection?.$ROOT$) {
       pipeline.push({
@@ -134,10 +131,7 @@ class BaseDocAggregator<T extends Document> {
             subpipeline.push({ $project: dto.pathProjection[path] });
           } else if (value.projection) {
             subpipeline.push({
-              $project: value.projection.reduce((acc, value) => {
-                acc[value] = 1;
-                return acc;
-              }, {}),
+              $project: value.projection,
             });
           } else if (dto.minified) {
             const props = Object.keys(propertyClass.prototype.__props).filter(
