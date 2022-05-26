@@ -176,14 +176,14 @@ class BaseDocAggregator<T extends Document> {
                 },
               },
             });
-          } else if (flags && LookupFlags.UNWIND) {
+          } else if (flags & LookupFlags.UNWIND) {
             pipeline.push({
               $unwind: {
                 path: `$${path}`,
                 preserveNullAndEmptyArrays: !!!(flags & LookupFlags.REQUIRED),
               },
             });
-          } else if (flags && LookupFlags.REQUIRED) {
+          } else if (flags & LookupFlags.REQUIRED) {
             pipeline.push({
               $match: {
                 [path]: { $not: { $size: 0 } },

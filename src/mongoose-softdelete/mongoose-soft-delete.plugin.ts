@@ -1,10 +1,4 @@
-import {
-  SaveOptions,
-  Schema,
-  Aggregate,
-  Query,
-  Error as MongooseError,
-} from "mongoose";
+import { SaveOptions, Schema, Aggregate, Query } from "mongoose";
 
 export const mongooseSoftDeletePlugin = (schema: Schema) => {
   schema.add({
@@ -66,7 +60,7 @@ export const mongooseSoftDeletePlugin = (schema: Schema) => {
         await template
           .save(options)
           .then(() => deleted++)
-          .catch((e: MongooseError) => {
+          .catch((e: any) => {
             throw new Error(e.name + " " + e.message);
           });
       }
@@ -94,7 +88,7 @@ export const mongooseSoftDeletePlugin = (schema: Schema) => {
         await deletedTemplate
           .save()
           .then(() => restored++)
-          .catch((e: MongooseError) => {
+          .catch((e: any) => {
             throw new Error(e.name + " " + e.message);
           });
       }
