@@ -45,6 +45,9 @@ const documentMethods = [
   "findOneAndDelete",
   "findOneAndRemove",
   "findOneAndUpdate",
+  "findOne",
+  "find",
+  "count",
 ] as Array<MongooseDocumentMiddleware | MongooseQueryMiddleware>;
 
 export const mongooseTrxPlugin = (schema: Schema) => {
