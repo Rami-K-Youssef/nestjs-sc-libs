@@ -68,13 +68,13 @@ export function wrapInTransaction<
       };
       return await runInNewHookContext(context, async () => {
         const session = await connection.startSession();
-        session.startTransaction();
+        let trxResult = undefined;
         try {
-          const res = await transactionCallback(session);
-          await session.commitTransaction();
-          return res;
+          await session.withTransaction(async () => {
+            trxResult = await transactionCallback(session);
+          });
+          return trxResult;
         } catch (err) {
-          await session.abortTransaction();
           throw err;
         } finally {
           await session.endSession();
