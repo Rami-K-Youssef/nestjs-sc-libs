@@ -31,7 +31,7 @@ export function TransformDto(
     const dtos = options.discriminator.subTypes.map((subtype) => subtype.value);
     responseDecorator = ApiResponse({
       schema: {
-        anyOf: refs(dtos as any),
+        anyOf: refs(...(dtos as any)),
       },
     });
   } else {

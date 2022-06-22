@@ -12,7 +12,7 @@ import { instanceToPlain, plainToInstance } from "class-transformer";
 import { Request } from "express";
 import { Document } from "mongoose";
 import { map } from "rxjs";
-import { plainToDiscrimnator } from "../../search-pagination/transforms";
+import { plainToDiscriminator } from "../../search-pagination/transforms";
 import { ClassTransformerOptionsExt } from "../decoractors";
 import { BaseResponseDto } from "./../../search-pagination/definitions";
 import { SearchResult } from "./../../search-pagination/dto/pagination.dto";
@@ -111,26 +111,33 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
     request: any,
     user: any
   ): PlainLiteralObject | PlainLiteralObject[] {
-    if (!isObject(response) || response instanceof StreamableFile) {
+    if (
+      !isObject(response) ||
+      response instanceof StreamableFile ||
+      dto == null
+    ) {
       return response;
     }
 
+    const options = transformOptions ?? {};
+
     const fn = (obj) => {
       if (obj instanceof Document) {
-        const options = { ...(transformOptions ?? {}) };
         const item = obj.toObject();
+        const oldGroups = options.groups;
         if (groupFn) options.groups = groupFn(item, user);
         const instance = options.discriminator
-          ? (plainToDiscrimnator(
+          ? (plainToDiscriminator(
               options.discriminator,
               item,
               options
             ) as BaseResponseDto)
           : plainToInstance(dto, item, options);
+        options.groups = oldGroups;
         if (this.postProcessFunction && !options.skipPostProcessing) {
           this.postProcessFunction(request, instance);
         }
-        return instanceToPlain(instance, options);
+        return instance;
       } else if (obj instanceof BaseResponseDto) {
         if (
           this.postProcessFunction &&
@@ -138,22 +145,23 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
         ) {
           this.postProcessFunction(request, obj);
         }
-        return instanceToPlain(obj, transformOptions);
+        return obj;
       } else {
-        const options = { ...(transformOptions ?? {}) };
         const item = obj;
+        const oldGroups = options.groups;
         if (groupFn) options.groups = groupFn(item, user);
         const instance = options.discriminator
-          ? (plainToDiscrimnator(
+          ? (plainToDiscriminator(
               options.discriminator,
               item,
               options
             ) as BaseResponseDto)
           : plainToInstance(dto, item, options);
+        options.groups = oldGroups;
         if (this.postProcessFunction && !options.skipPostProcessing) {
           this.postProcessFunction(request, instance);
         }
-        return instanceToPlain(instance, options);
+        return instance;
       }
     };
 

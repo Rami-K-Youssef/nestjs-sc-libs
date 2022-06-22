@@ -6,7 +6,7 @@ import { SearchKey } from "../search-key";
 export abstract class BaseCollectionProperties implements ISearchable {
   @SearchKey({
     filterable: true,
-    includeInMinifed: true,
+    includeInMinified: true,
     isId: true,
     name: "id",
   })

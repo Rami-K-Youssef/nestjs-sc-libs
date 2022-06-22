@@ -48,7 +48,7 @@ export const TransformIds = (): PropertyDecorator => {
   };
 };
 
-export function plainToDiscrimnator(
+export function plainToDiscriminator(
   discriminator: DiscriminatorDescriptor,
   plain: any,
   options?: ClassTransformOptions

@@ -10,7 +10,7 @@ export class ProjectionParser {
     } else {
       const props = Object.keys(this.baseClass.prototype.__props).filter(
         (prop) =>
-          this.baseClass.prototype.__props[prop].includeInMinifed == true
+          this.baseClass.prototype.__props[prop].includeInMinified == true
       );
 
       return {

@@ -113,7 +113,7 @@ class BaseDocAggregator<T extends Document> {
           checkPathAndReturnDescriptor(path, dto.baseClass, "None");
         if (
           propertyDescriptor.pathClass &&
-          (!dto.minified || propertyDescriptor.includeInMinifed)
+          (!dto.minified || propertyDescriptor.includeInMinified)
         ) {
           const pathClass = propertyDescriptor.pathClass();
           const schemaDetails = global.MongoTypeMetadataStorage.schemas.find(
@@ -136,7 +136,7 @@ class BaseDocAggregator<T extends Document> {
           } else if (dto.minified) {
             const props = Object.keys(propertyClass.prototype.__props).filter(
               (prop) =>
-                propertyClass.prototype.__props[prop].includeInMinifed == true
+                propertyClass.prototype.__props[prop].includeInMinified == true
             );
             const projection = props.reduce((acc, value) => {
               acc[value] = 1;

@@ -18,31 +18,18 @@ export interface CollectionPropertyOptions {
   readonly isId?: boolean;
   readonly isDate?: boolean;
   readonly isArray?: boolean;
-  readonly includeInMinifed?: boolean;
+  readonly includeInMinified?: boolean;
   readonly prefix?: string;
   readonly postfix?: string;
 }
 
 export class BaseResponseDto {
-  @Expose({ toClassOnly: true, name: "_id" })
-  @ApiHideProperty()
-  @Transform(
-    ({ obj }) => {
-      return obj._id?.toString();
-    },
-    { toClassOnly: true }
-  )
-  _id: string;
-
   @Expose()
-  @Transform(
-    ({ value, obj }) => {
-      return (
-        value ?? (typeof obj?._id == "string" ? obj?._id : obj?._id?.toString())
-      );
-    },
-    { toPlainOnly: true }
-  )
+  @Transform(({ value, obj }) => {
+    return (
+      value ?? (typeof obj?._id == "string" ? obj?._id : obj?._id?.toString?.())
+    );
+  })
   id: string;
   @Expose()
   createdAt: Date;

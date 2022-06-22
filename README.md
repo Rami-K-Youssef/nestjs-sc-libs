@@ -210,7 +210,7 @@ Then decorate properties with SearchKey decorator:
 
 ```ts
 export class Device extends StampedCollectionProperties {
-  @SearchKey({ sortable: true, filterable: true, includeInMinifed: true })
+  @SearchKey({ sortable: true, filterable: true, includeInMinified: true })
   @Prop({ required: true })
   name: string;
 

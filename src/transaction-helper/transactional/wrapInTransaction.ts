@@ -16,15 +16,21 @@ export type Options = {
   propagation?: Propagation;
 };
 
+let notYetLoggedInitializationError = true;
+
 export function wrapInTransaction<
   Func extends (this: any, ...args: any[]) => ReturnType<Func>
 >(fn: Func, options?: Options & { name?: string | symbol }) {
   function wrapped(this: unknown, ...newArgs: unknown[]): ReturnType<Func> {
     const context = getNamespace(NAMESPACE_NAME);
     if (!context) {
-      throw new Error(
-        "No CLS namespace defined in your app ... please call initializeTransactionalContext() before application start."
-      );
+      if (notYetLoggedInitializationError) {
+        console.log(
+          "No CLS namespace defined in your app ... please call initializeTransactionalContext() before application start."
+        );
+        notYetLoggedInitializationError = true;
+      }
+      return fn.apply(this, [...newArgs]);
     }
     let tempConnectionName =
       options && options.connectionName ? options.connectionName : "default";
