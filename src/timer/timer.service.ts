@@ -63,7 +63,12 @@ export class TimerService {
 
   @Transactional({ propagation: Propagation.SUPPORTS })
   public async runTimers(configs: TimerConfig[]) {
-    const actions = await this.timedActionModel.create(configs);
+    const actions = await this.timedActionModel.create(
+      configs.map((config) => ({
+        _id: config.timerId,
+        ...config,
+      }))
+    );
     actions.forEach((action) => {
       if (action.execTime <= this.job.nextDate().toJSDate()) {
         this._startActionTimeout(action);

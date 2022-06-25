@@ -1,6 +1,13 @@
 import { Transform, TransformFnParams, Type } from "class-transformer";
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsInt, IsMongoId, IsOptional, Min } from "class-validator";
+import {
+  IsBoolean,
+  IsInt,
+  IsMongoId,
+  IsOptional,
+  IsString,
+  Min,
+} from "class-validator";
 import { BadRequestException } from "@nestjs/common";
 import { ISearchableClass } from "../definitions";
 import { Types } from "mongoose";
@@ -78,6 +85,11 @@ export class SearchDto {
   @Transform(({ value }) => (value == "true" ? true : false))
   @IsBoolean()
   minified = false;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  search?: string;
 
   transformedResult: TransformedSearchDto;
 }
