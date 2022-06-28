@@ -15,7 +15,10 @@ import { StorageFunction } from "./types";
 import * as AWS from "aws-sdk";
 import * as path from "path";
 import archiver from "archiver";
-import { instantiateFileNotFoundException } from "../exceptions";
+import {
+  instantiateBadFileException,
+  instantiateFileNotFoundException,
+} from "../exceptions";
 
 export class AwsStorageManager extends BaseStorageManager {
   private getUrlFromBucket(bucket, path) {
@@ -104,6 +107,7 @@ export class AwsStorageManager extends BaseStorageManager {
       return resultingBuffer;
     };
     return new Promise<UploadedFile>((resolve, reject) => {
+      stream.on("error", () => reject(instantiateBadFileException()));
       this.s3.upload(
         {
           Bucket: bucket,

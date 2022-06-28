@@ -5,6 +5,7 @@ export enum AllUploaderExceptions {
   FileMissingException,
   FileNotFoundException,
   InvalidPdfFileException,
+  BadFileException,
 }
 
 export type Localization<T extends string | number> = Record<

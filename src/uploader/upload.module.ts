@@ -49,6 +49,7 @@ export class UploadModule {
         [AllUploaderExceptions.InvalidAspectRatioException]: {},
         [AllUploaderExceptions.InvalidMimeTypeException]: {},
         [AllUploaderExceptions.InvalidPdfFileException]: {},
+        [AllUploaderExceptions.BadFileException]: {},
       });
   }
 

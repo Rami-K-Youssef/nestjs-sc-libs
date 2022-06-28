@@ -10,7 +10,10 @@ import {
   GeneratedFileAttributes,
 } from "./storage-manager.base";
 import { StorageFunction } from "./types";
-import { instantiateFileNotFoundException } from "../exceptions";
+import {
+  instantiateBadFileException,
+  instantiateFileNotFoundException,
+} from "../exceptions";
 
 import archiver from "archiver";
 
@@ -114,6 +117,7 @@ export class LocalStorageManager extends BaseStorageManager {
   ): Promise<UploadedFile> {
     return new Promise<UploadedFile>((resolve, reject) => {
       const outStream = fs.createWriteStream(meta.path);
+      stream.on("error", () => reject(instantiateBadFileException()));
       stream.pipe(outStream);
       outStream.on("error", reject);
       outStream.on("finish", () => {

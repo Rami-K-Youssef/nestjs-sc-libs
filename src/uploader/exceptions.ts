@@ -17,6 +17,14 @@ export function initializeExceptions<T extends number | string>(
   //@ts-ignore
   ImageMissingAlphaChannelException = InternalImageMissingAlphaChannelException;
 
+  class InternalBadFileException extends GenCodedException<T>(
+    HttpStatus.BAD_REQUEST,
+    "BAD_FILE",
+    localization[AllUploaderExceptions.BadFileException]
+  ) {}
+  //@ts-ignore
+  BadFileException = InternalBadFileException;
+
   class InternalFileNotFoundException extends GenCodedException(
     HttpStatus.NOT_FOUND,
     "FILE_NOT_FOUND",
@@ -90,6 +98,12 @@ export function instantiateInvalidAspectRatioException(args: {
   originalName: string;
 }) {
   return new InvalidAspectRatioException(args);
+}
+
+type BadFileExceptionConstructor = new () => CodedException<any>;
+let BadFileException: BadFileExceptionConstructor;
+export function instantiateBadFileException() {
+  return new BadFileException();
 }
 
 type ImageMissingAlphaChannelExceptionConstructor =

@@ -89,7 +89,10 @@ export class FilePipeline {
       this._resultingFiles.push(parentFile);
 
       const lastDotIndex = file.filename.lastIndexOf(".");
-      const fileName = file.filename.substring(0, lastDotIndex);
+      const fileName =
+        lastDotIndex == -1
+          ? file.filename
+          : file.filename.substring(0, lastDotIndex);
       const fileExtension =
         lastDotIndex == -1 ? "" : file.filename.substring(lastDotIndex);
 
