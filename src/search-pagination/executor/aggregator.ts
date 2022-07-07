@@ -232,10 +232,15 @@ class BaseDocAggregator<T extends Document> {
       data,
       total:
         ((dto.isNext ? dto.limit * dto.page : 0) ?? 0) + (total[0]?.total ?? 0),
+      after: data[0]?._id?.toHexString?.(),
     };
   }
 
-  protected paginate(query: TransformedSearchDto, count: number): Pagination {
+  protected paginate(
+    query: TransformedSearchDto,
+    count: number,
+    after: string | null
+  ): Pagination {
     return {
       total: count,
       page: query.page,
@@ -243,6 +248,7 @@ class BaseDocAggregator<T extends Document> {
       next:
         (query.page + 1) * query.limit >= count ? undefined : query.page + 1,
       prev: query.page == 0 ? undefined : query.page - 1,
+      after,
     };
   }
 }
@@ -270,7 +276,7 @@ export class PlainDocAggregator<
     const res = await this._aggregate(dto, pathOptions);
     const that = this;
     const result = {
-      pagination: this.paginate(dto, res.total),
+      pagination: this.paginate(dto, res.total, res.after),
       data: res.data,
     };
     return new SearchResult(result);
@@ -315,7 +321,7 @@ export class DocAggregator<
     const res = await this._aggregate(dto, pathOptions);
     const that = this;
     const result = {
-      pagination: this.paginate(dto, res.total),
+      pagination: this.paginate(dto, res.total, res.after),
       data: this.transformData(res.data),
     };
     return result;

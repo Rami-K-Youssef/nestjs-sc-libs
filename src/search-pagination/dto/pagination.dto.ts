@@ -4,6 +4,7 @@ export interface Pagination {
   limit: number;
   next?: number;
   prev?: number;
+  after?: string;
 }
 
 export class SearchResult<T> {
