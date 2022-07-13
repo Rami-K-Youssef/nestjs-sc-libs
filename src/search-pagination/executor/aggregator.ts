@@ -18,6 +18,15 @@ interface DocAggregatorOptions extends PlainDocAggregatorOptions {
   transformFn?: (item: any, user?: any) => string[];
 }
 
+function isObjectEmpty(value) {
+  for (const key in value) {
+    if (Object.prototype.hasOwnProperty.call(value, key)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 class BaseDocAggregator<T extends Document> {
   protected ctx: { user?: any };
   constructor(protected model: Model<T>, options?: PlainDocAggregatorOptions) {
@@ -91,9 +100,11 @@ class BaseDocAggregator<T extends Document> {
         $and.push(...res);
         filter.$and = $and;
       }
-      pipeline.push({
-        $match: filter,
-      });
+
+      if (!isObjectEmpty(filter))
+        pipeline.push({
+          $match: filter,
+        });
     }
 
     if (pathOptions.$ROOT$.projection) {
@@ -125,12 +136,15 @@ class BaseDocAggregator<T extends Document> {
             value.collection ?? schemaDetails.options?.collection;
           if (!collectionName)
             throw new Error(`${pathClass} is not assigned a collection name`);
-          const subpipeline = [{ $match: value.accessibility ?? {} }] as any[];
+
+          const subPipeline = [] as any[];
+          if (!isObjectEmpty(value.accessibility ?? {}))
+            pipeline.push({ $match: value.accessibility ?? {} });
 
           if (dto.pathProjection[path]) {
-            subpipeline.push({ $project: dto.pathProjection[path] });
+            subPipeline.push({ $project: dto.pathProjection[path] });
           } else if (value.projection) {
-            subpipeline.push({
+            subPipeline.push({
               $project: value.projection,
             });
           } else if (dto.minified) {
@@ -142,24 +156,24 @@ class BaseDocAggregator<T extends Document> {
               acc[value] = 1;
               return acc;
             }, {});
-            subpipeline.push({ $project: projection });
+            subPipeline.push({ $project: projection });
           }
 
           const flags = value.flags ?? 0;
           if (!(flags & LookupFlags.NONSOFTDELETE)) {
-            subpipeline.push({
+            subPipeline.push({
               $match: { isDeleted: value.deleted ?? false },
             });
           }
 
-          if (flags & LookupFlags.SINGLE) subpipeline.push({ $limit: 1 });
+          if (flags & LookupFlags.SINGLE) subPipeline.push({ $limit: 1 });
           pipeline.push({
             $lookup: {
               from: collectionName,
               localField: path,
               foreignField: value.joinField ?? "_id",
               as: path,
-              pipeline: subpipeline,
+              pipeline: subPipeline,
             },
           });
           if (flags & LookupFlags.SINGLE) {
@@ -204,7 +218,7 @@ class BaseDocAggregator<T extends Document> {
       });
     }
 
-    if (dto.postFilter)
+    if (!isObjectEmpty(dto.postFilter ?? {}))
       pipeline.push({
         $match: dto.postFilter,
       });

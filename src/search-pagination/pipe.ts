@@ -15,9 +15,12 @@ export class SearchPipe implements PipeTransform {
     const filterParser = new FilterParser(this.searchClass);
     if (value.filter) {
       transformedResult.filter = filterParser.parse(value.filter);
+    } else {
+      transformedResult.filter = {};
     }
     if (value.postFilter)
       transformedResult.postFilter = filterParser.parse(value.postFilter);
+    else transformedResult.postFilter = {};
     if (value.after) {
       transformedResult.isNext = true;
       transformedResult.afterId = new Types.ObjectId(value.after);
