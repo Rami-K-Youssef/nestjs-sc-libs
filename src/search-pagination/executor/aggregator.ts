@@ -139,7 +139,7 @@ class BaseDocAggregator<T extends Document> {
 
           const subPipeline = [] as any[];
           if (!isObjectEmpty(value.accessibility ?? {}))
-            pipeline.push({ $match: value.accessibility ?? {} });
+            subPipeline.push({ $match: value.accessibility ?? {} });
 
           if (dto.pathProjection[path]) {
             subPipeline.push({ $project: dto.pathProjection[path] });
