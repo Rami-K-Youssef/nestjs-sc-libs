@@ -1,10 +1,10 @@
 import { ClassTransformOptions, plainToInstance } from "class-transformer";
+import * as _ from "lodash";
 import { Document, LeanDocument, Model } from "mongoose";
-import { resolvePathFilters } from "./path-resolver";
 import { Pagination, SearchResult, TransformedSearchDto } from "..";
 import { DiscriminatorDescDto, LookupFlags, PathOptions } from "../definitions";
-
 import { checkPathAndReturnDescriptor } from "./../parsers/path-checker";
+import { resolvePathFilters } from "./path-resolver";
 
 interface BaseDocAggregatorOptions {
   ctx?: { user?: any };
@@ -171,9 +171,10 @@ class BaseDocAggregator<T extends Document> {
             $lookup: {
               from: collectionName,
               localField: path,
-              foreignField: value.joinField ?? "_id",
+              foreignField: "_id",
               as: path,
               pipeline: subPipeline,
+              ..._.omitBy(value.lookup ?? {}, _.isNil),
             },
           });
           if (flags & LookupFlags.SINGLE) {

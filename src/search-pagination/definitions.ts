@@ -1,13 +1,11 @@
-import { SearchKey } from "./search-key";
 export interface ISearchable {
   __props?: Record<string, CollectionPropertyOptions>;
 }
 
 export type ISearchableClass = new () => ISearchable;
 
-import { Types } from "mongoose";
 import { Expose, Transform } from "class-transformer";
-import { ApiHideProperty } from "@nestjs/swagger";
+import { PipelineStage } from "mongoose";
 
 export interface CollectionPropertyOptions {
   readonly name?: string;
@@ -52,10 +50,10 @@ export type PathOptions = Record<
   string,
   {
     accessibility?: Record<string, any>;
+    lookup?: Partial<PipelineStage.Lookup>;
     projection?: any;
     flags?: number;
     deleted?: boolean;
-    joinField?: string;
     collection?: string;
   }
 >;
