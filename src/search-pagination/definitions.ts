@@ -50,7 +50,7 @@ export type PathOptions = Record<
   string,
   {
     accessibility?: Record<string, any>;
-    lookup?: Partial<PipelineStage.Lookup>;
+    lookup?: Partial<PipelineStage.Lookup["$lookup"]>;
     projection?: any;
     flags?: number;
     deleted?: boolean;
