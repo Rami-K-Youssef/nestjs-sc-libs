@@ -37,7 +37,7 @@ export type ImageResizeOptions = {
 };
 
 export type WatermarkOptions = {
-  fn: (user: any) => DownloadableFile;
+  fn: (user: any) => DownloadableFile | Promise<DownloadableFile>;
   thisArg?: any;
   requiredWidthRatio?: number; // 0.16
   borderRadiusRatio?: number; // 0.02
