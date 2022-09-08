@@ -85,6 +85,14 @@ export class FilePipeline {
         else execAfter.push(action);
       });
 
+      const lastDotIndex = file.filename.lastIndexOf(".");
+      const fileName =
+        lastDotIndex == -1
+          ? file.filename
+          : file.filename.substring(0, lastDotIndex);
+      const fileExtension =
+        lastDotIndex == -1 ? "" : file.filename.substring(lastDotIndex);
+
       const executeActions = async (
         actions: PipelineAction[],
         parentFile: UploadedFile
@@ -119,14 +127,6 @@ export class FilePipeline {
         this._mainFileAction
       );
       this._resultingFiles.push(parentFile);
-
-      const lastDotIndex = file.filename.lastIndexOf(".");
-      const fileName =
-        lastDotIndex == -1
-          ? file.filename
-          : file.filename.substring(0, lastDotIndex);
-      const fileExtension =
-        lastDotIndex == -1 ? "" : file.filename.substring(lastDotIndex);
 
       await executeActions(execAfter, parentFile);
 
