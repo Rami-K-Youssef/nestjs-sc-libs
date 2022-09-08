@@ -20,6 +20,7 @@ export interface PipelineAction {
   name: string;
   skipStream?: boolean;
   extension?: string;
+  execFirst?: boolean;
 }
 
 export type ImageValidationOptions = {
@@ -43,4 +44,5 @@ export type WatermarkOptions = {
   borderRadiusRatio?: number; // 0.02
   opacityWithoutAlpha?: number; // 30%
   opacityWithAlpha?: number; // 70%
+  execBeforeMainImage?: boolean;
 };

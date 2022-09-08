@@ -46,6 +46,7 @@ export class ImagePipeline extends FilePipeline {
       name: null,
       method: watermark,
       args: [options],
+      execFirst: options.execBeforeMainImage,
     });
     return this;
   }
