@@ -24,7 +24,8 @@ export interface ClassTransformerOptionsExt extends ClassTransformOptions {
 export function TransformDto(
   dto: new (...args: any[]) => unknown,
   options?: ClassTransformerOptionsExt,
-  groupFn?: (item: any, user?: any) => string[]
+  groupFn?: (item: any, user?: any) => string[],
+  searchResultCls?: new (...args: any[]) => unknown
 ) {
   let responseDecorator: any;
   if (options?.discriminator) {
@@ -41,6 +42,7 @@ export function TransformDto(
     SetMetadata("class_serializer:options", options),
     SetMetadata("class_serializer:dto", dto),
     SetMetadata("class_serializer:groupFn", groupFn),
+    SetMetadata("class_serializer:searchResultCls", searchResultCls),
     responseDecorator
   );
 }

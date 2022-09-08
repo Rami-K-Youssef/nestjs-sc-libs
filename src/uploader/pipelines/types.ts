@@ -1,8 +1,10 @@
 import sharp from "sharp";
 import { Readable } from "stream";
-import { StorageFunction } from "../storage";
 import { UploadedFile } from "../interfaces";
-import { BaseStorageManager } from "../storage/storage-manager.base";
+import {
+  BaseStorageManager,
+  DownloadableFile,
+} from "../storage/storage-manager.base";
 
 export interface PipelineAction {
   method: (
@@ -32,4 +34,13 @@ export type ImageResizeOptions = {
   width: number;
   height: number;
   options?: sharp.ResizeOptions;
+};
+
+export type WatermarkOptions = {
+  fn: (user: any) => DownloadableFile;
+  thisArg?: any;
+  requiredWidthRatio?: number; // 0.16
+  borderRadiusRatio?: number; // 0.02
+  opacityWithoutAlpha?: number; // 30%
+  opacityWithAlpha?: number; // 70%
 };

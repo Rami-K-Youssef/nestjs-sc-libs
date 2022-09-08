@@ -183,13 +183,13 @@ class BaseDocAggregator<T extends Document> {
                 preserveNullAndEmptyArrays: !!!(flags & LookupFlags.REQUIRED),
               },
             });
-            pipeline.push({
-              $addFields: {
-                [path]: {
-                  $ifNull: [`$${path}`, null],
-                },
-              },
-            });
+            // pipeline.push({
+            //   $addFields: {
+            //     [path]: {
+            //       $ifNull: [`$${path}`, null],
+            //     },
+            //   },
+            // });
           } else if (flags & LookupFlags.UNWIND) {
             pipeline.push({
               $unwind: {
