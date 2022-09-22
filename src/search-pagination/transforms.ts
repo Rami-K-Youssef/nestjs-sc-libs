@@ -1,6 +1,7 @@
 import {
   ClassTransformOptions,
   DiscriminatorDescriptor,
+  Expose,
   plainToInstance,
   Transform,
   Type,
@@ -19,6 +20,28 @@ export const TransformIdOrDto = (
   };
 };
 
+export const TransformIdOrDtoSafe = (
+  myClass: () => new (...args: any[]) => unknown
+): PropertyDecorator => {
+  return (target: Object, propertyKey: string | symbol) => {
+    const idKey = (propertyKey as string) + "Id";
+    Transform(({ obj, value, key }) => {
+      if (obj[key] instanceof Types.ObjectId) {
+        return;
+      }
+      return value;
+    })(target, propertyKey);
+    Transform(({ obj, value, key }) => {
+      if (obj[propertyKey] instanceof Types.ObjectId) {
+        return obj[propertyKey];
+      }
+    })(target, idKey);
+    Expose()(target, idKey);
+    Type(() => String)(target, idKey);
+    Type(() => myClass())(target, propertyKey);
+  };
+};
+
 export const TransformIdOrDtoArray = (
   myClass: () => new (...args: any[]) => unknown
 ): PropertyDecorator => {
@@ -30,6 +53,30 @@ export const TransformIdOrDtoArray = (
           : myClass();
       return result;
     })(...args);
+  };
+};
+
+export const TransformIdOrDtoArraySafe = (
+  myClass: () => new (...args: any[]) => unknown
+): PropertyDecorator => {
+  return (target, propertyKey: symbol | string) => {
+    const idKey = (propertyKey as string) + "Ids";
+    Transform(({ obj, value, key }) => {
+      if (obj[key].length == 0) return [];
+      if (obj[key][0] instanceof Types.ObjectId) {
+        return;
+      }
+      return value;
+    })(target, propertyKey);
+    Transform(({ obj, value, key }) => {
+      if (obj[key].length == 0) return [];
+      if (obj[propertyKey][0] instanceof Types.ObjectId) {
+        return obj[propertyKey];
+      }
+    })(target, idKey);
+    Expose()(target, idKey);
+    Type(() => String)(target, idKey);
+    Type(() => myClass())(target, propertyKey);
   };
 };
 
