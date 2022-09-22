@@ -62,15 +62,15 @@ export const TransformIdOrDtoArraySafe = (
   return (target, propertyKey: symbol | string) => {
     const idKey = (propertyKey as string) + "Ids";
     Transform(({ obj, value, key }) => {
-      if (obj[key].length == 0) return [];
-      if (obj[key][0] instanceof Types.ObjectId) {
+      if (obj[key]?.length == 0) return [];
+      if (obj[key]?.at(0) instanceof Types.ObjectId) {
         return;
       }
       return value;
     })(target, propertyKey);
     Transform(({ obj, value, key }) => {
-      if (obj[key].length == 0) return [];
-      if (obj[propertyKey][0] instanceof Types.ObjectId) {
+      if (obj[propertyKey]?.length == 0) return [];
+      if (obj[propertyKey]?.at(0) instanceof Types.ObjectId) {
         return obj[propertyKey];
       }
     })(target, idKey);
