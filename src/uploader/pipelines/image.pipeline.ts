@@ -156,23 +156,36 @@ async function createThumbnail(
 
     const imageMetadata = await getMeta.call(this);
     if (imageMetadata.width > imageMetadata.height) {
-      finalImageWidth = imageMetadata.width;
-      finalImageHeight = Math.ceil(
-        (finalImageWidth * options.height) / options.width
+      finalImageWidth = options.width;
+      finalImageHeight = Math.floor(
+        (finalImageWidth * imageMetadata.height) / imageMetadata.width
       );
     } else {
-      finalImageHeight = imageMetadata.height;
-      finalImageWidth = Math.ceil(
-        (finalImageHeight * options.width) / options.height
+      finalImageHeight = options.height;
+      finalImageWidth = Math.floor(
+        (finalImageHeight * imageMetadata.width) / imageMetadata.height
       );
     }
 
-    const finalWatermarkWidth = Math.ceil(
+    let finalWatermarkWidth = Math.ceil(
       (watermark.options.requiredWidthRatio ?? 0.16) * finalImageWidth
     );
-    const finalWatermarkHeight = Math.ceil(
+    let finalWatermarkHeight = Math.ceil(
       (finalWatermarkWidth * watermark.meta.height) / watermark.meta.width
     );
+
+    if (finalWatermarkWidth > finalImageWidth) {
+      finalWatermarkWidth = finalImageWidth;
+      finalWatermarkHeight = Math.floor(
+        (finalWatermarkWidth * watermark.meta.height) / watermark.meta.width
+      );
+    } else if (finalWatermarkHeight > finalImageHeight) {
+      finalWatermarkHeight = finalImageHeight;
+      finalWatermarkWidth = Math.floor(
+        (finalImageHeight * watermark.meta.width) / watermark.meta.height
+      );
+    }
+
     const watermarkSharp = sharp(watermark.buffer).resize({
       width: finalWatermarkWidth,
       height: finalWatermarkHeight,
