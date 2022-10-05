@@ -151,8 +151,24 @@ async function createThumbnail(
   if (this._watermark) {
     // center
     const watermark = this._watermark;
+    let finalImageWidth: number;
+    let finalImageHeight: number;
+
+    const imageMetadata = await getMeta.call(this);
+    if (imageMetadata.width > imageMetadata.height) {
+      finalImageWidth = imageMetadata.width;
+      finalImageHeight = Math.ceil(
+        (finalImageWidth * options.height) / options.width
+      );
+    } else {
+      finalImageHeight = imageMetadata.height;
+      finalImageWidth = Math.ceil(
+        (finalImageHeight * options.width) / options.height
+      );
+    }
+
     const finalWatermarkWidth = Math.ceil(
-      (watermark.options.requiredWidthRatio ?? 0.16) * options.width
+      (watermark.options.requiredWidthRatio ?? 0.16) * finalImageWidth
     );
     const finalWatermarkHeight = Math.ceil(
       (finalWatermarkWidth * watermark.meta.height) / watermark.meta.width
@@ -166,9 +182,9 @@ async function createThumbnail(
       : watermark.options.opacityWithoutAlpha ?? 0.16;
     const rect = Buffer.from(
       `<svg><rect x="0" y="0" width="${finalWatermarkWidth}" height="${finalWatermarkHeight}" rx="${Math.ceil(
-        options.width * (watermark.options.borderRadiusRatio ?? 0.02)
+        finalImageWidth * (watermark.options.borderRadiusRatio ?? 0.02)
       )}" ry="${
-        options.width * (watermark.options.borderRadiusRatio ?? 0.02)
+        finalImageWidth * (watermark.options.borderRadiusRatio ?? 0.02)
       }" opacity="${opacity}"/></svg>`
     );
     watermarkSharp.composite([
