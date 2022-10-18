@@ -246,7 +246,7 @@ class BaseDocAggregator<T extends Document> {
       data,
       total:
         ((dto.isNext ? dto.limit * dto.page : 0) ?? 0) + (total[0]?.total ?? 0),
-      after: data[0]?._id?.toHexString?.(),
+      after: data.at(-1)?._id?.toHexString?.(),
     };
   }
 
