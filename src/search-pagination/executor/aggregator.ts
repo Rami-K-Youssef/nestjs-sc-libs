@@ -125,7 +125,6 @@ class BaseDocAggregator<T extends Document> {
         $project: dto.pathProjection.$ROOT$,
       });
     }
-
     Object.entries(pathOptions)
       .filter(([key]) => key != "$ROOT$")
       .forEach(([path, value]) => {
@@ -185,6 +184,7 @@ class BaseDocAggregator<T extends Document> {
               pipeline: subPipeline,
             },
           });
+          lookedUpPaths.push(path);
           if (flags & LookupFlags.SINGLE) {
             pipeline.push({
               $unwind: {
@@ -192,6 +192,31 @@ class BaseDocAggregator<T extends Document> {
                 preserveNullAndEmptyArrays: !!!(flags & LookupFlags.REQUIRED),
               },
             });
+
+            if (path.includes(".")) {
+              const parentPath = path.substring(0, path.lastIndexOf("."));
+              if (
+                lookedUpPaths.includes(parentPath) &&
+                pathOptions[parentPath].flags & LookupFlags.SINGLE
+              ) {
+                pipeline.push({
+                  $addFields: {
+                    [parentPath]: {
+                      $cond: [
+                        {
+                          $eq: [
+                            { $ifNull: [`$${parentPath}._id`, null] },
+                            null,
+                          ],
+                        },
+                        null,
+                        `$${parentPath}`,
+                      ],
+                    },
+                  },
+                });
+              }
+            }
             // pipeline.push({
             //   $addFields: {
             //     [path]: {
