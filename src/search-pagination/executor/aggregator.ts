@@ -20,7 +20,10 @@ interface DocAggregatorOptions extends PlainDocAggregatorOptions {
 
 function extractKey(item: Record<string, any>, key: string) {
   let val = item;
-  for (const subkey of key.split(".")) val = val[subkey];
+  for (const subkey of key.split(".")) {
+    if (val == null) return null;
+    val = val[subkey];
+  }
   return val;
 }
 
