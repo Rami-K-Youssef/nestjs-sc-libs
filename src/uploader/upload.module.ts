@@ -18,6 +18,7 @@ import { ServeStaticModule } from "./../serve-static/serve-static.module";
 
 import * as path from "path";
 import { initializeExceptions } from "./exceptions";
+import { ServeStaticModuleOptions } from "../serve-static";
 
 enum DefaultLocEnum {}
 
@@ -106,21 +107,29 @@ export class UploadModule {
 
   private static initServeStaticModule(optionsProvider: Provider) {
     return ServeStaticModule.forRootAsync({
+      imports: [],
       extraProviders: [optionsProvider],
       inject: [UPLOAD_MODULE_OPTIONS],
       useFactory: (options: UploadModuleOptions) =>
         options.localStorageOptions
           ? [
-              {
-                serveRoot:
-                  options.localStorageOptions.publicServePath.startsWith("/")
-                    ? options.localStorageOptions.publicServePath
-                    : "/" + options.localStorageOptions.publicServePath,
-                rootPath: path.join(
-                  options.localStorageOptions.storageDir,
-                  "public"
-                ),
-              },
+              (() => {
+                const result: ServeStaticModuleOptions = {
+                  serveRoot:
+                    options.localStorageOptions.publicServePath.startsWith("/")
+                      ? options.localStorageOptions.publicServePath
+                      : "/" + options.localStorageOptions.publicServePath,
+                  rootPath: path.join(
+                    options.localStorageOptions.storageDir,
+                    "public"
+                  ),
+                };
+                if (options.localStorageOptions?.serveStaticOptions) {
+                  result.serveStaticOptions =
+                    options.localStorageOptions.serveStaticOptions;
+                }
+                return result;
+              })(),
             ]
           : [],
     });
