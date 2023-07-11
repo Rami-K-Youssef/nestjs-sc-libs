@@ -1,9 +1,9 @@
-import { Provider } from '@nestjs/common';
-import { HttpAdapterHost } from '@nestjs/core';
-import { AbstractLoader } from './loaders/abstract.loader';
-import { ExpressLoader } from './loaders/express.loader';
-import { FastifyLoader } from './loaders/fastify.loader';
-import { NoopLoader } from './loaders/noop.loader';
+import { Provider } from "@nestjs/common";
+import { HttpAdapterHost } from "@nestjs/core";
+import { AbstractLoader } from "./loaders/abstract.loader";
+import { ExpressLoader } from "./loaders/express.loader";
+import { FastifyLoader } from "./loaders/fastify.loader";
+import { NoopLoader } from "./loaders/noop.loader";
 
 export const serveStaticProviders: Provider[] = [
   {
@@ -16,7 +16,7 @@ export const serveStaticProviders: Provider[] = [
       if (
         httpAdapter &&
         httpAdapter.constructor &&
-        httpAdapter.constructor.name === 'FastifyAdapter'
+        httpAdapter.constructor.name === "FastifyAdapter"
       ) {
         return new FastifyLoader();
       }

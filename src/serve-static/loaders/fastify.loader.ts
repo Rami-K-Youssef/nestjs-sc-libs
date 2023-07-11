@@ -1,26 +1,26 @@
-import { Injectable } from '@nestjs/common';
-import { loadPackage } from '@nestjs/common/utils/load-package.util';
-import { AbstractHttpAdapter } from '@nestjs/core';
-import * as fs from 'fs';
-import { ServeStaticModuleOptions } from '../interfaces/serve-static-options.interface';
+import { Injectable } from "@nestjs/common";
+import { loadPackage } from "@nestjs/common/utils/load-package.util";
+import { AbstractHttpAdapter } from "@nestjs/core";
+import * as fs from "fs";
+import { ServeStaticModuleOptions } from "../interfaces/serve-static-options.interface";
 import {
   DEFAULT_RENDER_PATH,
   DEFAULT_ROOT_PATH,
-} from '../serve-static.constants';
-import { validatePath } from '../utils/validate-path.util';
-import { AbstractLoader } from './abstract.loader';
+} from "../serve-static.constants";
+import { validatePath } from "../utils/validate-path.util";
+import { AbstractLoader } from "./abstract.loader";
 
 @Injectable()
 export class FastifyLoader extends AbstractLoader {
   public register(
     httpAdapter: AbstractHttpAdapter,
-    optionsArr: ServeStaticModuleOptions[],
+    optionsArr: ServeStaticModuleOptions[]
   ) {
     const app = httpAdapter.getInstance();
     const fastifyStatic = loadPackage(
-      'fastify-static',
-      'ServeStaticModule',
-      () => require('fastify-static'),
+      "fastify-static",
+      "ServeStaticModule",
+      () => require("fastify-static")
     );
 
     optionsArr.forEach((options) => {
@@ -38,13 +38,13 @@ export class FastifyLoader extends AbstractLoader {
         });
 
         const renderPath =
-          typeof options.serveRoot === 'string'
+          typeof options.serveRoot === "string"
             ? options.serveRoot + validatePath(options.renderPath as string)
             : options.serveRoot;
 
         app.get(renderPath, (req: any, res: any) => {
           const stream = fs.createReadStream(indexFilePath);
-          res.type('text/html').send(stream);
+          res.type("text/html").send(stream);
         });
       } else {
         app.register(fastifyStatic, {
@@ -61,7 +61,7 @@ export class FastifyLoader extends AbstractLoader {
             const stat = fs.statSync(indexFilePath);
             options.serveStaticOptions.setHeaders(res, indexFilePath, stat);
           }
-          res.type('text/html').send(stream);
+          res.type("text/html").send(stream);
         });
       }
     });

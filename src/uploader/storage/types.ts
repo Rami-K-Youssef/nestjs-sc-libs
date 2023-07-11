@@ -12,5 +12,5 @@ export type StorageFunction = (
   readStream: Readable,
   options: SingleFieldUploadOptions,
   user?: any,
-  info?: Record<string,string>,
+  info?: Record<string, string>
 ) => Promise<UploadedFile>;

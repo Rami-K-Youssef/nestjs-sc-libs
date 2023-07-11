@@ -1,6 +1,11 @@
-import { ForbiddenError } from '@casl/ability';
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { ForbiddenError } from "@casl/ability";
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+} from "@nestjs/common";
+import { Request, Response } from "express";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore

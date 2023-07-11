@@ -1,6 +1,11 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
-import { Response } from 'express';
-import { JsonWebTokenError } from 'jsonwebtoken';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+} from "@nestjs/common";
+import { Response } from "express";
+import { JsonWebTokenError } from "jsonwebtoken";
 @Catch(JsonWebTokenError)
 export class JwtExceptionFilter implements ExceptionFilter {
   catch(exception: JsonWebTokenError, host: ArgumentsHost) {
@@ -10,15 +15,15 @@ export class JwtExceptionFilter implements ExceptionFilter {
     let statusCode: HttpStatus;
     let message = exception.message;
     switch (exception.name) {
-      case 'JsonWebTokenError':
-      case 'TokenExpiredError':
-      case 'NotBeforeError':
+      case "JsonWebTokenError":
+      case "TokenExpiredError":
+      case "NotBeforeError":
         statusCode = HttpStatus.BAD_REQUEST;
         break;
       default:
         console.log(exception);
         statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-        message = 'Internal server error';
+        message = "Internal server error";
         break;
     }
 

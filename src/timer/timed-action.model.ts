@@ -1,9 +1,9 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, SchemaTypes } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document, SchemaTypes } from "mongoose";
 
 @Schema({
   timestamps: { updatedAt: false, createdAt: true },
-  collection: 'timed_actions',
+  collection: "timed_actions",
 })
 export class TimedAction {
   @Prop({ required: true })
