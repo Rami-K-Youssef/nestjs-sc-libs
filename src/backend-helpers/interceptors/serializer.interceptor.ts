@@ -66,6 +66,10 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
         "class_serializer:groupFn",
         context.getHandler()
       );
+      const searchResultCls = this.reflector.get(
+        "class_serializer:searchResultCls",
+        context.getHandler()
+      );
       const handlerData =
         this.reflector.get("class_serializer:data", context.getHandler()) ?? {};
 
@@ -96,7 +100,8 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
             dto,
             groupFn,
             request,
-            user
+            user,
+            searchResultCls
           );
         })
       );
@@ -109,7 +114,8 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
     dto: typeof BaseResponseDto,
     groupFn: (item: any, user?: any) => string[],
     request: any,
-    user: any
+    user: any,
+    searchResultCls: typeof BaseResponseDto
   ): PlainLiteralObject | PlainLiteralObject[] {
     if (
       !isObject(response) ||
@@ -167,7 +173,21 @@ export class CustomClassSerializerInterceptor extends ClassSerializerInterceptor
 
     if (response instanceof SearchResult) {
       const data = response.data.map(fn);
-      return { data, pagination: response.pagination };
+      const pagination = response.pagination;
+
+      if (searchResultCls) {
+        const item = response;
+        const oldGroups = options.groups;
+        if (groupFn) options.groups = groupFn(item, user);
+        const instance = plainToInstance(searchResultCls, item, options);
+        options.groups = oldGroups;
+        if (this.postProcessFunction && !options.skipPostProcessing) {
+          this.postProcessFunction(request, instance);
+        }
+        return { ...instance, data, pagination };
+      } else {
+        return { data, pagination };
+      }
     } else if (Array.isArray(response)) {
       return response.map(fn);
     } else {

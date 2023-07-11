@@ -1,11 +1,10 @@
+import * as fs from "fs";
+import * as path from "path";
+import { Readable } from "stream";
+import * as uuid from "uuid";
 import { PipelineAction } from ".";
 import { SingleFieldUploadOptions } from "..";
 import { UploadedFile } from "../interfaces";
-import { StorageFunction } from "../storage";
-import * as fs from "fs";
-import * as path from "path";
-import * as uuid from "uuid";
-import { Readable } from "stream";
 import { BaseStorageManager } from "../storage/storage-manager.base";
 
 export class FilePipeline {
@@ -78,6 +77,47 @@ export class FilePipeline {
       if (lastIndexOfDot > 0 && ext) {
         flName = flName.substring(0, lastIndexOfDot);
       }
+
+      const execNow: PipelineAction[] = [];
+      const execAfter: PipelineAction[] = [];
+      this._actions.forEach((action) => {
+        if (action.execFirst) execNow.push(action);
+        else execAfter.push(action);
+      });
+
+      const lastDotIndex = file.filename.lastIndexOf(".");
+      const fileName =
+        lastDotIndex == -1
+          ? file.filename
+          : file.filename.substring(0, lastDotIndex);
+      const fileExtension =
+        lastDotIndex == -1 ? "" : file.filename.substring(lastDotIndex);
+
+      const executeActions = async (
+        actions: PipelineAction[],
+        parentFile: UploadedFile
+      ) => {
+        for (const action of actions) {
+          const filename =
+            fileName + `-${action.name}` + (action.extension ?? fileExtension);
+          const subFile = await this.invokeAction(
+            filename,
+            {},
+            parentFile,
+            action.skipStream ? null : fs.createReadStream(this._tempFilePath),
+            this.storageManager,
+            action
+          );
+          if (subFile) {
+            parentFile.processedFiles ??= {} as Record<string, UploadedFile>;
+            parentFile.processedFiles[action.name] = subFile;
+            this._resultingFiles.push(subFile);
+          }
+        }
+      };
+
+      await executeActions(execNow, null);
+
       const parentFile = await this.invokeAction(
         flName + ext,
         file,
@@ -88,31 +128,7 @@ export class FilePipeline {
       );
       this._resultingFiles.push(parentFile);
 
-      const lastDotIndex = file.filename.lastIndexOf(".");
-      const fileName =
-        lastDotIndex == -1
-          ? file.filename
-          : file.filename.substring(0, lastDotIndex);
-      const fileExtension =
-        lastDotIndex == -1 ? "" : file.filename.substring(lastDotIndex);
-
-      for (const action of this._actions) {
-        const filename =
-          fileName + `-${action.name}` + (action.extension ?? fileExtension);
-        const subFile = await this.invokeAction(
-          filename,
-          {},
-          parentFile,
-          action.skipStream ? null : fs.createReadStream(this._tempFilePath),
-          this.storageManager,
-          action
-        );
-        if (subFile) {
-          parentFile.processedFiles ??= {} as Record<string, UploadedFile>;
-          parentFile.processedFiles[action.name] = subFile;
-          this._resultingFiles.push(subFile);
-        }
-      }
+      await executeActions(execAfter, parentFile);
 
       return parentFile;
     } catch (err) {

@@ -1,5 +1,6 @@
 import { Exclude } from "class-transformer";
 import { Request } from "express";
+import { ServeStaticModuleOptions } from "..";
 import { FilePipeline } from "./pipelines";
 
 export interface SingleFieldUploadOptions {
@@ -50,6 +51,7 @@ export enum UploadModuleStorageType {
 export interface LocalStorageOptions {
   storageDir: string;
   publicServePath: string;
+  serveStaticOptions: ServeStaticModuleOptions['serveStaticOptions'];
 }
 
 export interface AwsStorageOptions {

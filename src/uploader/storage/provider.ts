@@ -46,7 +46,10 @@ export class StorageProvider {
   async pipeFile(res: Response, file: DownloadableFile, inline = false) {
     const name = file.overrideName ?? file.originalName ?? "file";
     if (!inline)
-      res.setHeader("content-disposition", `attachment; filename=${name}`);
+      res.setHeader(
+        "content-disposition",
+        `attachment; filename=${encodeURI(name)}`
+      );
     else res.setHeader("content-disposition", "inline");
     await this.storageManager.pipeFile(file, res);
   }
@@ -58,7 +61,10 @@ export class StorageProvider {
     inline = false
   ) {
     if (!inline)
-      res.setHeader("content-disposition", `attachment; filename=${name}`);
+      res.setHeader(
+        "content-disposition",
+        `attachment; filename=${encodeURI(name)}`
+      );
     else res.setHeader("content-disposition", "inline");
     await this.storageManager.zipMultipleFiles(files, res);
   }

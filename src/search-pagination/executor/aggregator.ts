@@ -3,7 +3,7 @@ import { Document, LeanDocument, Model } from "mongoose";
 import { resolvePathFilters } from "./path-resolver";
 import { Pagination, SearchResult, TransformedSearchDto } from "..";
 import { DiscriminatorDescDto, LookupFlags, PathOptions } from "../definitions";
-
+import { isEmpty } from "lodash";
 import { checkPathAndReturnDescriptor } from "./../parsers/path-checker";
 
 interface BaseDocAggregatorOptions {
@@ -16,6 +16,15 @@ interface DocAggregatorOptions extends PlainDocAggregatorOptions {
   discriminator?: DiscriminatorDescDto;
   transformOptions?: ClassTransformOptions;
   transformFn?: (item: any, user?: any) => string[];
+}
+
+function extractKey(item: Record<string, any>, key: string) {
+  let val = item;
+  for (const subkey of key.split(".")) {
+    if (val == null) return null;
+    val = val[subkey];
+  }
+  return val;
 }
 
 function isObjectEmpty(value) {
@@ -35,7 +44,8 @@ class BaseDocAggregator<T extends Document> {
 
   protected async _aggregate(
     dto: TransformedSearchDto,
-    pathOptions: PathOptions = {}
+    pathOptions: PathOptions = {},
+    skipCount = false
   ): Promise<{
     data: any[];
     total: number;
@@ -57,17 +67,19 @@ class BaseDocAggregator<T extends Document> {
             })
         );
         after = {
-          $or: Object.entries(sortObj).map(([key, value], index, entries) => {
-            const res = {};
-            for (let i = 0; i < index; i++) {
-              const key = entries[i][0];
-              let val = lastItem[key];
-              res[entries[i][0]] = val ?? null;
-            }
-            let val = lastItem[key];
-            if (val != null) res[key] = { [value == 1 ? "$gt" : "$lt"]: val };
-            return res;
-          }),
+          $or: Object.entries(sortObj)
+            .map(([key, value], index, entries) => {
+              const res = {};
+              for (let i = 0; i < index; i++) {
+                const key = entries[i][0];
+                let val = extractKey(lastItem, key);
+                res[entries[i][0]] = val ?? null;
+              }
+              let val = extractKey(lastItem, key);
+              if (val != null) res[key] = { [value == 1 ? "$gt" : "$lt"]: val };
+              return res;
+            })
+            .filter((item) => !isEmpty(item)),
         };
       }
       dto.filter = {
@@ -116,7 +128,6 @@ class BaseDocAggregator<T extends Document> {
         $project: dto.pathProjection.$ROOT$,
       });
     }
-
     Object.entries(pathOptions)
       .filter(([key]) => key != "$ROOT$")
       .forEach(([path, value]) => {
@@ -176,6 +187,7 @@ class BaseDocAggregator<T extends Document> {
               pipeline: subPipeline,
             },
           });
+          lookedUpPaths.push(path);
           if (flags & LookupFlags.SINGLE) {
             pipeline.push({
               $unwind: {
@@ -183,13 +195,38 @@ class BaseDocAggregator<T extends Document> {
                 preserveNullAndEmptyArrays: !!!(flags & LookupFlags.REQUIRED),
               },
             });
-            pipeline.push({
-              $addFields: {
-                [path]: {
-                  $ifNull: [`$${path}`, null],
-                },
-              },
-            });
+
+            if (path.includes(".")) {
+              const parentPath = path.substring(0, path.lastIndexOf("."));
+              if (
+                lookedUpPaths.includes(parentPath) &&
+                pathOptions[parentPath].flags & LookupFlags.SINGLE
+              ) {
+                pipeline.push({
+                  $addFields: {
+                    [parentPath]: {
+                      $cond: [
+                        {
+                          $eq: [
+                            { $ifNull: [`$${parentPath}._id`, null] },
+                            null,
+                          ],
+                        },
+                        null,
+                        `$${parentPath}`,
+                      ],
+                    },
+                  },
+                });
+              }
+            }
+            // pipeline.push({
+            //   $addFields: {
+            //     [path]: {
+            //       $ifNull: [`$${path}`, null],
+            //     },
+            //   },
+            // });
           } else if (flags & LookupFlags.UNWIND) {
             pipeline.push({
               $unwind: {
@@ -236,7 +273,7 @@ class BaseDocAggregator<T extends Document> {
             return res;
           })(),
         ],
-        total: [{ $count: "total" }],
+        ...(() => (skipCount ? {} : { total: [{ $count: "total" }] }))(),
       },
     });
 
@@ -244,9 +281,11 @@ class BaseDocAggregator<T extends Document> {
 
     return {
       data,
-      total:
-        ((dto.isNext ? dto.limit * dto.page : 0) ?? 0) + (total[0]?.total ?? 0),
-      after: data[0]?._id?.toHexString?.(),
+      total: skipCount
+        ? undefined
+        : ((dto.isNext ? dto.limit * dto.page : 0) ?? 0) +
+          (total[0]?.total ?? 0),
+      after: data.at(-1)?._id?.toHexString?.(),
     };
   }
 
@@ -279,7 +318,7 @@ export class PlainDocAggregator<
     dto: TransformedSearchDto,
     pathOptions: PathOptions = {}
   ) {
-    const res = await this._aggregate(dto, pathOptions);
+    const res = await this._aggregate(dto, pathOptions, true);
     return res.data;
   }
 
@@ -324,7 +363,7 @@ export class DocAggregator<
     dto: TransformedSearchDto,
     pathOptions: PathOptions = {}
   ): Promise<TResponseDto[]> {
-    const res = await super._aggregate(dto, pathOptions);
+    const res = await super._aggregate(dto, pathOptions, true);
     return this.transformData(res.data);
   }
 

@@ -6,7 +6,7 @@ export interface ISearchable {
 export type ISearchableClass = new () => ISearchable;
 
 import { Types } from "mongoose";
-import { Expose, Transform } from "class-transformer";
+import { Expose, Transform, Type } from "class-transformer";
 import { ApiHideProperty } from "@nestjs/swagger";
 
 export interface CollectionPropertyOptions {
@@ -35,6 +35,9 @@ export class BaseResponseDto {
   createdAt: Date;
   @Expose()
   updatedAt: Date;
+  @Expose()
+  @Type(() => String)
+  __afterId: string;
 }
 
 export interface DiscriminatorDescDto {
