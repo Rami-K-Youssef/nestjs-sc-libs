@@ -56,6 +56,7 @@ export type PathOptions = Record<
     flags?: number;
     deleted?: boolean;
     joinField?: string;
+    localField?: string;
     collection?: string;
   }
 >;

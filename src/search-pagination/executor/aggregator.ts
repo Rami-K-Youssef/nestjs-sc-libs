@@ -170,7 +170,7 @@ class BaseDocAggregator<T extends Document> {
           pipeline.push({
             $lookup: {
               from: collectionName,
-              localField: path,
+              localField: value.localField ?? path,
               foreignField: value.joinField ?? "_id",
               as: path,
               pipeline: subPipeline,
