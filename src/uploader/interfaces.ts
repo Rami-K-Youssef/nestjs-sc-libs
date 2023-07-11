@@ -51,7 +51,7 @@ export enum UploadModuleStorageType {
 export interface LocalStorageOptions {
   storageDir: string;
   publicServePath: string;
-  serveStaticOptions: ServeStaticModuleOptions['serveStaticOptions'];
+  serveStaticOptions: ServeStaticModuleOptions["serveStaticOptions"];
 }
 
 export interface AwsStorageOptions {
