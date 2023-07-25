@@ -1,12 +1,12 @@
+import { isRabbitContext } from "@golevelup/nestjs-rabbitmq";
+import { CacheInterceptor } from "@nestjs/cache-manager";
 import {
   CallHandler,
   ExecutionContext,
-  CacheInterceptor,
   Injectable,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Observable } from "rxjs";
-import { isRabbitContext } from "@golevelup/nestjs-rabbitmq";
 
 const CachePropertyName = Symbol("CacheThisApiSymbol");
 

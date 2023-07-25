@@ -1,18 +1,16 @@
+import { getNamespace } from "cls-hooked";
 import {
   Document,
-  SaveOptions,
-  Schema,
-  MongooseQueryMiddleware,
   MongooseDocumentMiddleware,
+  MongooseQueryMiddleware,
   Query,
+  Schema,
 } from "mongoose";
-import { getNameByConnection } from "./transactional/connections";
-import { getNamespace } from "cls-hooked";
 import {
   NAMESPACE_NAME,
   getSessionForConnection,
 } from "./transactional/common";
-import { ClientSession } from "mongodb";
+import { getNameByConnection } from "./transactional/connections";
 
 function patchDocumentMethodMiddleware(this, next) {
   const context = getNamespace(NAMESPACE_NAME);
@@ -51,6 +49,6 @@ const documentMethods = [
 
 export const mongooseTrxPlugin = (schema: Schema) => {
   documentMethods.forEach((method) =>
-    schema.pre(method, patchDocumentMethodMiddleware)
+    schema.pre(method as any, patchDocumentMethodMiddleware)
   );
 };

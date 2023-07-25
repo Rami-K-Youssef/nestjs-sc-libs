@@ -1,4 +1,4 @@
-import { SaveOptions, Schema, Aggregate, Query } from "mongoose";
+import { Aggregate, Query, SaveOptions, Schema } from "mongoose";
 
 export const mongooseSoftDeletePlugin = (schema: Schema) => {
   schema.add({
@@ -43,7 +43,7 @@ export const mongooseSoftDeletePlugin = (schema: Schema) => {
   }
 
   typesFindQueryMiddleware.forEach((type) => {
-    schema.pre(type, excludeInFindQueriesIsDeleted);
+    schema.pre(type as any, excludeInFindQueriesIsDeleted);
   });
 
   schema.static("softDelete", async function (filter, options?: SaveOptions) {
