@@ -1,10 +1,6 @@
 import { isRabbitContext } from "@golevelup/nestjs-rabbitmq";
 import { CacheInterceptor } from "@nestjs/cache-manager";
-import {
-  CallHandler,
-  ExecutionContext,
-  Injectable,
-} from "@nestjs/common";
+import { CallHandler, ExecutionContext, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Observable } from "rxjs";
 
